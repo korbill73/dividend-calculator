@@ -184,7 +184,7 @@ export function DividendHistory() {
                                         fontWeight: 'bold',
                                         marginBottom: '8px',
                                     }}
-                                    formatter={(value: number) => [formatCurrency(value), "배당금"]}
+                                    formatter={(value) => [formatCurrency(value || 0), "배당금"]}
                                     labelFormatter={(label) => `${label}년`}
                                 />
                                 <Bar
