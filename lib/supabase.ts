@@ -1,12 +1,6 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 
-// Client Component용 (브라우저)
-export const createBrowserClient = () => {
-    return createClientComponentClient();
-};
-
-// 일반 클라이언트 (환경변수 직접 사용)
+// Supabase 클라이언트
 export const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
