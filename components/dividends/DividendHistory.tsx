@@ -79,10 +79,6 @@ export function DividendHistory() {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(val);
     };
 
-    const formatNumber = (val: number) => {
-        return new Intl.NumberFormat('ko-KR').format(val);
-    };
-
     if (yearlyStats.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
