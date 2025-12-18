@@ -184,7 +184,7 @@ export function DividendHistory() {
                                         fontWeight: 'bold',
                                         marginBottom: '8px',
                                     }}
-                                    formatter={(value) => [formatCurrency(value || 0), "배당금"]}
+                                    formatter={(value) => [formatCurrency(Number(value) || 0), "배당금"]}
                                     labelFormatter={(label) => `${label}년`}
                                 />
                                 <Bar
@@ -242,7 +242,7 @@ export function DividendHistory() {
                                         color: '#3b82f6',
                                         fontWeight: 'bold',
                                     }}
-                                    formatter={(value: number) => [formatCurrency(value), "누적"]}
+                                    formatter={(value) => [formatCurrency(Number(value) || 0), "누적"]}
                                     labelFormatter={(label) => `${label}년`}
                                 />
                                 <Legend />
