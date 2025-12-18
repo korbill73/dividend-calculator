@@ -1,101 +1,105 @@
-import Image from "next/image";
+"use client";
+
+import { useFinanceStore } from "@/store/useFinanceStore";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowRight, TrendingUp, PieChart, Wallet } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { portfolio, simSettings } = useFinanceStore();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  const totalAssets = portfolio.reduce((acc, item) => acc + (item.quantity * item.currentPrice), 0);
+  const totalSimAssets = simSettings.accounts.reduce((acc, accItem) => acc + accItem.balance, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Dashboard (대시보드)</h1>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-l-4 border-l-yellow-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">
+              Dividend Portfolio Value (배당 포트폴리오 가치)
+            </CardTitle>
+            <PieChart className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">
+              {new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(totalAssets)}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Active Holdings (보유 종목)
+            </p>
+            <Button asChild variant="link" className="px-0 text-yellow-500 hover:text-yellow-400">
+              <Link href="/dividends" className="flex items-center gap-1">
+                Manage Dividends (배당 관리) <ArrowRight className="h-3 w-3" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">
+              Total Simulated Assets (시뮬레이션 총 자산)
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">
+              {new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(totalSimAssets)}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Across all accounts (Start Balance) (전계좌 시작 잔액)
+            </p>
+            <Button asChild variant="link" className="px-0 text-blue-400 hover:text-blue-300">
+              <Link href="/simulation" className="flex items-center gap-1">
+                View Projection (예측 보기) <ArrowRight className="h-3 w-3" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-slate-200">
+              Monthly Contribution (월 추가 불입금)
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">
+              {new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(simSettings.monthlyContribution)}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Target Savings / Month (월 목표 저축액)
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        {/* Quick Shortcuts or recent activity could go here */}
+        <Card className="col-span-4 bg-card/50">
+          <CardHeader>
+            <CardTitle>Welcome to FinDash</CardTitle>
+            <CardDescription>
+              Your personal command center for asset growth and dividend tracking.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Start by adding your stocks in the <strong>Dividend Tracker</strong> or configure your asset inputs in the <strong>Simulation</strong> tab.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Your data is automatically saved to your local browser storage. Use the <strong>Settings</strong> to backup your data.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
