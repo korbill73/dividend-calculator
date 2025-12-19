@@ -1,6 +1,7 @@
 "use client";
 
 import { useFinanceStore, StockItem } from "@/store/useFinanceStore";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
@@ -17,8 +18,12 @@ interface DividendMatrixProps {
 
 export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }: DividendMatrixProps = {}) {
     const { portfolio, updateItem, removeItem, addItem } = useFinanceStore();
+    const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [localSelectedYear, setLocalSelectedYear] = useState(new Date().getFullYear());
+
+    // 로그인 여부
+    const isReadOnly = !user;
 
     // Use prop if provided, otherwise use local state
     const selectedYear = propSelectedYear ?? localSelectedYear;
@@ -46,10 +51,12 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
     };
 
     const handleUpdate = (id: string, field: keyof StockItem, value: string | number) => {
+        if (isReadOnly) return;
         updateItem(id, { [field]: value });
     };
 
     const handleMonthlyUpdate = (id: string, monthIndex: number, value: number) => {
+        if (isReadOnly) return;
         const item = portfolio.find(p => p.id === id);
         if (!item) return;
 
@@ -71,6 +78,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
     };
 
     const handleAddStock = () => {
+        if (isReadOnly) return;
         const newItem: StockItem = {
             id: crypto.randomUUID(),
             name: "New Stock",
@@ -125,7 +133,12 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                             →
                         </Button>
                     </div>
-                    <Button onClick={handleAddStock} className="gap-2">
+                    <Button
+                        onClick={handleAddStock}
+                        className="gap-2"
+                        disabled={isReadOnly}
+                        title={isReadOnly ? "로그인이 필요합니다" : ""}
+                    >
                         <Plus className="h-4 w-4" /> Add Stock (종목 추가)
                     </Button>
                 </div>
@@ -150,18 +163,21 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                         placeholder="Stock Name"
                                         rows={2}
                                         style={{ minHeight: '3rem' }}
+                                        disabled={isReadOnly}
                                     />
                                     <div className="text-xs text-slate-400 font-normal">
                                         Annual: {formatCurrency(getCurrentYearDividends(stock).reduce((a, b) => a + b, 0))}
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                                        onClick={() => removeItem(stock.id)}
-                                    >
-                                        <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                    {!isReadOnly && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                                            onClick={() => removeItem(stock.id)}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    )}
                                 </th>
                             ))}
                         </tr>
@@ -182,6 +198,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                                 value={stock.dividendDay || ''}
                                                 onChange={(e) => handleUpdate(stock.id, 'dividendDay', Number(e.target.value))}
                                                 placeholder="일"
+                                                disabled={isReadOnly}
                                             />
                                         </div>
                                         <div className="flex flex-col">
@@ -193,6 +210,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                                     className="w-12 bg-slate-800 text-right outline-none rounded px-1 py-0.5 border border-slate-600 focus:border-blue-500"
                                                     value={stock.dividendYield}
                                                     onChange={(e) => handleUpdate(stock.id, 'dividendYield', Number(e.target.value))}
+                                                    disabled={isReadOnly}
                                                 />
                                                 <span className="text-slate-400">%</span>
                                             </div>
@@ -218,6 +236,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                                 className="w-16 bg-slate-900 text-right outline-none rounded px-1 py-0.5 border border-slate-600 focus:border-blue-500"
                                                 value={stock.quantity}
                                                 onChange={(e) => handleUpdate(stock.id, 'quantity', Number(e.target.value))}
+                                                disabled={isReadOnly}
                                             />
                                         </div>
                                         <div className="flex justify-between items-center">
@@ -227,6 +246,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                                 className="w-16 bg-slate-900 text-right outline-none rounded px-1 py-0.5 border border-slate-600 focus:border-blue-500"
                                                 value={stock.currentPrice}
                                                 onChange={(e) => handleUpdate(stock.id, 'currentPrice', Number(e.target.value))}
+                                                disabled={isReadOnly}
                                             />
                                         </div>
                                         <div className="text-right font-bold text-blue-300 pt-1.5 border-t border-slate-600 mt-0.5">
@@ -269,6 +289,8 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                                         handleMonthlyUpdate(stock.id, i, Number(rawValue) || 0);
                                                     }}
                                                     placeholder="0"
+                                                    disabled={isReadOnly}
+                                                    readOnly={isReadOnly}
                                                 />
                                             </td>
                                         );

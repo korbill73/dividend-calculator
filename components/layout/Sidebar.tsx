@@ -12,6 +12,7 @@ import {
     BarChart3,
     LogOut,
     User,
+    BookOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,27 +20,38 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 const navItems = [
     {
-        title: "Dashboard (대시보드)",
+        title: "Dashboard",
+        subtitle: "대시보드",
         href: "/",
         icon: LayoutDashboard,
     },
     {
-        title: "Dividend Tracker (배당 관리)",
+        title: "Dividend Tracker",
+        subtitle: "배당 관리",
         href: "/dividends",
         icon: PieChart,
     },
     {
-        title: "Dividend History (배당 통계)",
+        title: "Dividend History",
+        subtitle: "배당 통계",
         href: "/dividends/history",
         icon: BarChart3,
     },
     {
-        title: "Asset Simulation (자산 시뮬레이션)",
+        title: "Asset Simulation",
+        subtitle: "자산 시뮬레이션",
         href: "/simulation",
         icon: TrendingUp,
     },
     {
-        title: "Settings (설정)",
+        title: "Manual",
+        subtitle: "사용자 매뉴얼",
+        href: "/manual",
+        icon: BookOpen,
+    },
+    {
+        title: "Settings",
+        subtitle: "설정",
         href: "/settings",
         icon: Settings,
     },
@@ -88,14 +100,17 @@ export function Sidebar() {
                                 href={item.href}
                                 onClick={() => setIsMobileOpen(false)}
                                 className={cn(
-                                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
                                     pathname === item.href
                                         ? "bg-accent text-accent-foreground"
                                         : "text-muted-foreground"
                                 )}
                             >
-                                <item.icon className="h-4 w-4" />
-                                {item.title}
+                                <item.icon className="h-4 w-4 flex-shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium leading-tight">{item.title}</span>
+                                    <span className="text-[10px] text-muted-foreground leading-tight">{item.subtitle}</span>
+                                </div>
                             </Link>
                         ))}
                     </nav>

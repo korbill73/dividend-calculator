@@ -1,6 +1,7 @@
 "use client";
 
 import { useFinanceStore } from "@/store/useFinanceStore";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { generateSimulationData } from "@/lib/simulationUtils";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -29,8 +30,9 @@ import { SimSettings } from "./SimSettings";
 const ActualCell = ({
     date,
     initialValue,
-    onUpdate
-}: { date: string, initialValue: number | undefined, onUpdate: (d: string, v: number) => void }) => {
+    onUpdate,
+    disabled = false
+}: { date: string, initialValue: number | undefined, onUpdate: (d: string, v: number) => void, disabled?: boolean }) => {
     const [value, setValue] = useState(initialValue?.toString() || "");
 
     useEffect(() => {
@@ -38,7 +40,7 @@ const ActualCell = ({
     }, [initialValue]);
 
     const onBlur = () => {
-        if (value) {
+        if (value && !disabled) {
             onUpdate(date, Number(value));
         }
     };
@@ -52,19 +54,24 @@ const ActualCell = ({
     return (
         <Input
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => !disabled && setValue(e.target.value)}
             onBlur={onBlur}
             onKeyDown={onKeyDown}
-            className="h-8 w-32 text-right bg-transparent border-transparent hover:border-input focus:border-input"
-            placeholder="-"
+            className={`h-8 w-32 text-right bg-slate-800/50 border-slate-600 hover:border-slate-400 focus:border-blue-500 focus:bg-slate-800 ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+            placeholder={disabled ? "로그인 필요" : "입력"}
+            disabled={disabled}
         />
     )
 }
 
 export function SimulationDashboard() {
     const { simSettings, history, updateHistoryPoint } = useFinanceStore();
+    const { user } = useAuth();
 
     const startBalance = simSettings.accounts.reduce((acc, a) => acc + a.balance, 0);
+
+    // 로그인 여부
+    const isReadOnly = !user;
 
     const data = useMemo(() => {
         return generateSimulationData(
@@ -81,8 +88,89 @@ export function SimulationDashboard() {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(val);
     }
 
+    const latestActual = useMemo(() => {
+        const actualData = history.filter(h => h.value > 0);
+        if (actualData.length === 0) return null;
+        return actualData[actualData.length - 1];
+    }, [history]);
+
+    const actualDataCount = history.filter(h => h.value > 0).length;
+
     return (
         <div className="flex flex-col gap-6 h-[calc(100vh-100px)]">
+            {/* Actual Data Summary - 상단 추가 */}
+            {user && (
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border-yellow-500/30">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <span className="text-yellow-500">📊</span>
+                            Actual Performance Summary (실제 성과 요약)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">Latest Actual (최신 실제값)</p>
+                                <p className="text-2xl font-bold text-yellow-500">
+                                    {latestActual ? formatCurrency(latestActual.value) : '-'}
+                                </p>
+                                {latestActual && (
+                                    <p className="text-xs text-muted-foreground mt-1">{latestActual.date}</p>
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">Data Points (입력된 데이터)</p>
+                                <p className="text-2xl font-bold text-blue-400">
+                                    {actualDataCount}개월
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    총 {data.length}개월 중
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">vs Moderate Target (목표 대비)</p>
+                                {latestActual ? (
+                                    <>
+                                        <p className={`text-2xl font-bold ${(() => {
+                                            const targetRow = data.find(d => d.date === latestActual.date);
+                                            if (!targetRow) return 'text-muted-foreground';
+                                            const diff = latestActual.value - targetRow.moderate;
+                                            return diff >= 0 ? 'text-green-500' : 'text-red-500';
+                                        })()
+                                            }`}>
+                                            {(() => {
+                                                const targetRow = data.find(d => d.date === latestActual.date);
+                                                if (!targetRow) return '-';
+                                                const diff = latestActual.value - targetRow.moderate;
+                                                return (diff >= 0 ? '+' : '') + formatCurrency(diff);
+                                            })()}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {(() => {
+                                                const targetRow = data.find(d => d.date === latestActual.date);
+                                                if (!targetRow) return '';
+                                                const diff = latestActual.value - targetRow.moderate;
+                                                const percentage = (diff / targetRow.moderate) * 100;
+                                                return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
+                                            })()}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <p className="text-2xl font-bold text-muted-foreground">-</p>
+                                )}
+                            </div>
+                        </div>
+                        {!latestActual && (
+                            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                                <p className="text-sm text-yellow-500">
+                                    💡 하단 테이블의 <strong>"Actual Result"</strong> 열에서 실제 자산 가치를 입력하세요!
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Top Section: Settings & Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
                 {/* Settings Panel */}
@@ -122,6 +210,7 @@ export function SimulationDashboard() {
                                     itemStyle={{ color: '#f3f4f6' }}
                                     formatter={(value: number | undefined) => [formatCurrency(value || 0), "Amount"]}
                                     labelStyle={{ color: '#9ca3af' }}
+                                    itemSorter={(item: any) => -(item.value || 0)}
                                 />
                                 <Legend />
                                 <Line
@@ -166,7 +255,14 @@ export function SimulationDashboard() {
             {/* Bottom Section: Data Grid */}
             <Card className="flex-1 overflow-hidden flex flex-col">
                 <CardHeader>
-                    <CardTitle>Detailed Projection Data</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        Detailed Projection Data
+                        {user && (
+                            <span className="text-sm font-normal text-muted-foreground">
+                                (아래 <span className="text-yellow-500 font-semibold">Actual Result</span> 열에서 실제 값을 입력하세요)
+                            </span>
+                        )}
+                    </CardTitle>
                 </CardHeader>
                 <div className="flex-1 overflow-auto p-0">
                     <Table>
@@ -177,7 +273,12 @@ export function SimulationDashboard() {
                                 <TableHead className="text-right">Conservative</TableHead>
                                 <TableHead className="text-right">Moderate</TableHead>
                                 <TableHead className="text-right">Aggressive</TableHead>
-                                <TableHead className="text-right text-yellow-500 font-bold">Actual Result</TableHead>
+                                <TableHead className="text-right bg-yellow-500/10 border-l-2 border-yellow-500">
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-yellow-500 font-bold">✏️ Actual Result</span>
+                                        <span className="text-[10px] font-normal text-muted-foreground">(실제 자산 입력)</span>
+                                    </div>
+                                </TableHead>
                                 <TableHead className="text-right">Difference (vs Mod)</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -189,12 +290,13 @@ export function SimulationDashboard() {
                                     <TableCell className="text-right">{formatCurrency(row.conservative)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(row.moderate)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(row.aggressive)}</TableCell>
-                                    <TableCell className="text-right p-0">
+                                    <TableCell className="text-right p-0 bg-yellow-500/5 border-l-2 border-yellow-500/30">
                                         <div className="flex justify-end pr-4">
                                             <ActualCell
                                                 date={row.date}
                                                 initialValue={row.actual}
                                                 onUpdate={updateHistoryPoint}
+                                                disabled={isReadOnly}
                                             />
                                         </div>
                                     </TableCell>
