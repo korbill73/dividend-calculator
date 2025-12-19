@@ -9,7 +9,7 @@
 ```
 Framework preset: Next.js
 Build command: npm run build
-Build output directory: .next
+Build output directory: out
 Root directory: /
 Node version: 18
 ```
