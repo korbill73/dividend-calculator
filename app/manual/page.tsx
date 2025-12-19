@@ -252,8 +252,8 @@ export default function ManualPage() {
                             <div className="bg-muted/50 p-4 rounded-lg">
                                 <h4 className="font-semibold mb-2">실제 성과 입력하기</h4>
                                 <ol className="text-sm space-y-1 ml-4 text-muted-foreground">
-                                    <li>1. 하단 "Detailed Projection Data" 테이블로 이동</li>
-                                    <li>2. "Actual Result" 열에서 해당 월 클릭</li>
+                                    <li>1. 하단 &quot;Detailed Projection Data&quot; 테이블로 이동</li>
+                                    <li>2. &quot;Actual Result&quot; 열에서 해당 월 클릭</li>
                                     <li>3. 실제 자산 가치 입력</li>
                                     <li>4. Enter 키 또는 다른 셀 클릭 시 자동 저장</li>
                                 </ol>

@@ -163,7 +163,7 @@ export function SimulationDashboard() {
                         {!latestActual && (
                             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                                 <p className="text-sm text-yellow-500">
-                                    💡 하단 테이블의 <strong>"Actual Result"</strong> 열에서 실제 자산 가치를 입력하세요!
+                                    💡 하단 테이블의 <strong>&quot;Actual Result&quot;</strong> 열에서 실제 자산 가치를 입력하세요!
                                 </p>
                             </div>
                         )}
@@ -210,7 +210,7 @@ export function SimulationDashboard() {
                                     itemStyle={{ color: '#f3f4f6' }}
                                     formatter={(value: number | undefined) => [formatCurrency(value || 0), "Amount"]}
                                     labelStyle={{ color: '#9ca3af' }}
-                                    itemSorter={(item: any) => -(item.value || 0)}
+                                    itemSorter={(item: unknown) => -((item as { value?: number }).value || 0)}
                                 />
                                 <Legend />
                                 <Line

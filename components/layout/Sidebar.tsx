@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -121,10 +122,12 @@ export function Sidebar() {
                                 <div className="flex items-center gap-3 px-3 py-2 bg-accent/50 rounded-lg">
                                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                                         {user.user_metadata?.avatar_url ? (
-                                            <img
+                                            <Image
                                                 src={user.user_metadata.avatar_url}
                                                 alt="Avatar"
-                                                className="w-10 h-10 rounded-full"
+                                                width={40}
+                                                height={40}
+                                                className="rounded-full"
                                             />
                                         ) : (
                                             <User className="w-5 h-5 text-primary" />
