@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Save, Check, Loader2 } from "lucide-react";
+import { Save, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export function SimSettings() {
-    const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName, saveToSupabase } = useFinanceStore();
+    const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName, addAccount, removeAccount, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -181,22 +181,35 @@ export function SimSettings() {
 
                 {/* Accounts Initial Balances (in 만원) */}
                 <div className="space-y-3">
-                    <h3 className="text-sm font-medium leading-none">Current Account Balances (현재 계좌 잔액)</h3>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-sm font-medium leading-none">Current Account Balances (현재 계좌 잔액)</h3>
+                        {!isReadOnly && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addAccount()}
+                                className="h-7 text-xs"
+                            >
+                                <Plus className="h-3 w-3 mr-1" />
+                                계좌 추가
+                            </Button>
+                        )}
+                    </div>
                     <p className="text-xs text-muted-foreground">※ 금액은 만원 단위로 입력</p>
                     <div className="space-y-2">
                         {simSettings.accounts.map((acc, idx) => (
-                            <div key={idx} className="grid grid-cols-2 gap-2">
+                            <div key={idx} className="flex items-center gap-2">
                                 {/* 계좌 이름 (편집 가능) */}
                                 <Input
                                     type="text"
-                                    className="h-8 text-sm"
+                                    className="h-8 text-sm flex-1"
                                     value={acc.name}
                                     onChange={(e) => updateAccountName(idx, e.target.value)}
                                     placeholder="계좌명"
                                     disabled={isReadOnly}
                                 />
                                 {/* 잔액 입력 */}
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1 flex-1">
                                     <Input
                                         type="number"
                                         className="text-right h-8"
@@ -207,6 +220,17 @@ export function SimSettings() {
                                     />
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">만원</span>
                                 </div>
+                                {/* 삭제 버튼 */}
+                                {!isReadOnly && simSettings.accounts.length > 1 && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeAccount(idx)}
+                                        className="h-8 w-8 p-0 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
                         ))}
                         {/* 총합 표시 */}

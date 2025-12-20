@@ -49,6 +49,8 @@ interface FinanceStore {
     updateSimSettings: (updates: Partial<SimulatorSettings>) => void;
     updateAccountBalance: (index: number, newBalance: number) => void;
     updateAccountName: (index: number, newName: string) => void;
+    addAccount: (name?: string) => void;
+    removeAccount: (index: number) => void;
 
     // Global Actions
     importData: (data: string) => void; // Import JSON string
@@ -288,6 +290,17 @@ export const useFinanceStore = create<FinanceStore>()(
                 return { simSettings: { ...state.simSettings, accounts: newAccounts } };
             }),
 
+            addAccount: (name) => set((state) => {
+                const newAccount = { name: name || `계좌 ${state.simSettings.accounts.length + 1}`, balance: 0 };
+                return { simSettings: { ...state.simSettings, accounts: [...state.simSettings.accounts, newAccount] } };
+            }),
+
+            removeAccount: (index) => set((state) => {
+                if (state.simSettings.accounts.length <= 1) return state; // Keep at least one account
+                const newAccounts = state.simSettings.accounts.filter((_, i) => i !== index);
+                return { simSettings: { ...state.simSettings, accounts: newAccounts } };
+            }),
+
             importData: (jsonStr) => {
                 try {
                     const data = JSON.parse(jsonStr);
@@ -348,11 +361,31 @@ export const useFinanceStore = create<FinanceStore>()(
                         };
                     }
 
+                    // 2.5. Load history data
+                    const { data: historyData, error: historyError } = await supabase
+                        .from('user_history')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('date', { ascending: true });
+
+                    if (historyError && historyError.code !== 'PGRST116') {
+                        console.error('Error loading history:', historyError);
+                    }
+
+                    const loadedHistory = historyData?.map(h => ({
+                        date: h.date,
+                        value: Number(h.value)
+                    })) || [];
+
                     if (!portfolioItems || portfolioItems.length === 0) {
-                        // No portfolio data, but still apply simSettings if loaded
-                        if (loadedSimSettings) {
-                            set({ simSettings: loadedSimSettings });
-                            console.log('✅ Loaded sim settings from Supabase (no portfolio data)');
+                        // No portfolio data, but still apply simSettings and history if loaded
+                        const updates: Partial<FinanceStore> = {};
+                        if (loadedSimSettings) updates.simSettings = loadedSimSettings;
+                        if (loadedHistory.length > 0) updates.history = loadedHistory;
+                        
+                        if (Object.keys(updates).length > 0) {
+                            set(updates as any);
+                            console.log('✅ Loaded sim settings/history from Supabase (no portfolio data)');
                         }
                         return;
                     }
@@ -410,14 +443,13 @@ export const useFinanceStore = create<FinanceStore>()(
                         };
                     });
 
-                    // 4. Update store with portfolio and simSettings
-                    if (loadedSimSettings) {
-                        set({ portfolio: transformedPortfolio, simSettings: loadedSimSettings });
-                        console.log(`✅ Loaded ${transformedPortfolio.length} items and sim settings from Supabase`);
-                    } else {
-                        set({ portfolio: transformedPortfolio });
-                        console.log(`✅ Loaded ${transformedPortfolio.length} items from Supabase`);
-                    }
+                    // 4. Update store with portfolio, simSettings, and history
+                    const finalUpdates: any = { portfolio: transformedPortfolio };
+                    if (loadedSimSettings) finalUpdates.simSettings = loadedSimSettings;
+                    if (loadedHistory.length > 0) finalUpdates.history = loadedHistory;
+                    
+                    set(finalUpdates);
+                    console.log(`✅ Loaded ${transformedPortfolio.length} items, sim settings, and ${loadedHistory.length} history points from Supabase`);
                 } catch (error) {
                     console.error('Error in loadFromSupabase:', error);
                 }
@@ -535,6 +567,23 @@ export const useFinanceStore = create<FinanceStore>()(
 
                         if (simError) console.error('Error inserting sim settings:', simError);
                     }
+
+                    // 4. Save history data (upsert each point)
+                    for (const point of state.history) {
+                        const historyData = {
+                            user_id: userId,
+                            date: point.date,
+                            value: point.value,
+                        };
+
+                        const { error: historyError } = await supabase
+                            .from('user_history')
+                            .upsert(historyData, { onConflict: 'user_id,date' });
+
+                        if (historyError) {
+                            console.error('Error saving history point:', historyError);
+                        }
+                    }
                     
                     console.log('✅ Saved to Supabase successfully');
                     return true;
@@ -554,7 +603,7 @@ export const useFinanceStore = create<FinanceStore>()(
             }
         }),
         {
-            name: 'finance-storage-v8', // v8: Updated default sim settings and added Supabase sync for simSettings
+            name: 'finance-storage-v9', // v9: Added account add/remove and history Supabase sync
         }
     )
 );
