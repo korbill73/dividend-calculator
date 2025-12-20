@@ -102,49 +102,29 @@ export function DividendHistory() {
     return (
         <div className="space-y-4 md:space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-2 md:gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4">
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">총 연도</CardTitle>
+                        <CardTitle className="text-[10px] md:text-sm font-medium">당해년도 누적 배당</CardTitle>
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-                        <div className="text-lg md:text-2xl font-bold text-primary">{yearlyStats.length}년</div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">
-                            {yearlyStats[0]?.year} - {yearlyStats[yearlyStats.length - 1]?.year}
-                        </p>
+                        <div className="text-sm md:text-2xl font-bold text-cyan-400">
+                            {formatMan(yearlyStats.find(s => s.year === currentYear)?.totalDividend || 0)}
+                        </div>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">{currentYear}년 배당 합계</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">누적 배당</CardTitle>
+                        <CardTitle className="text-[10px] md:text-sm font-medium">전체 누적 배당</CardTitle>
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-                        <div className="text-sm md:text-2xl font-bold text-green-500">
+                        <div className="text-sm md:text-2xl font-bold text-sky-400">
                             {formatMan(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
                         </div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">전체 기간 합계</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">연평균 배당</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-                        <div className="text-sm md:text-2xl font-bold text-blue-500">
-                            {formatMan(yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length)}
-                        </div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">연평균</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">평균 수익률</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-                        <div className="text-lg md:text-2xl font-bold text-yellow-500">
-                            {(yearlyStats.reduce((sum, s) => sum + s.yieldRate, 0) / yearlyStats.length).toFixed(2)}%
-                        </div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">연평균 배당수익률</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">
+                            {yearlyStats[0]?.year} - {yearlyStats[yearlyStats.length - 1]?.year} ({yearlyStats.length}년간)
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -227,22 +207,22 @@ export function DividendHistory() {
                             <BarChart data={yearlyStats}>
                                 <defs>
                                     <linearGradient id="barGradientHistory" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="#16a34a" stopOpacity={1} />
+                                        <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#0ea5e9" stopOpacity={1} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
                                 <XAxis dataKey="year" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${Math.round(v / 10000)}만`} />
                                 <Tooltip
-                                    cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
+                                    cursor={{ fill: 'rgba(34, 211, 238, 0.1)' }}
                                     wrapperStyle={{ outline: 'none' }}
                                     content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
                                             return (
                                                 <div className="text-sm">
                                                     <p className="text-slate-200 font-semibold">{label}년</p>
-                                                    <p className="text-green-400 font-bold">{formatMan(payload[0].value as number)}</p>
+                                                    <p className="text-cyan-400 font-bold">{formatMan(payload[0].value as number)}</p>
                                                 </div>
                                             );
                                         }

@@ -28,21 +28,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimSettings } from "./SimSettings";
 import { Save, Loader2, Check } from "lucide-react";
 
-const ActualCell = ({
+const AccountCell = ({
     date,
-    initialValue,
+    accountIndex,
+    accountCount,
+    totalValue,
     onUpdate,
     disabled = false
-}: { date: string, initialValue: number | undefined, onUpdate: (d: string, v: number) => void, disabled?: boolean }) => {
-    const [value, setValue] = useState(initialValue ? Math.round(initialValue / 10000).toString() : "");
+}: { 
+    date: string, 
+    accountIndex: number,
+    accountCount: number,
+    totalValue: number | undefined, 
+    onUpdate: (d: string, v: number) => void, 
+    disabled?: boolean 
+}) => {
+    const perAccountValue = totalValue ? Math.round(totalValue / accountCount / 10000) : undefined;
+    const [value, setValue] = useState(perAccountValue ? perAccountValue.toString() : "");
 
     useEffect(() => {
-        setValue(initialValue ? Math.round(initialValue / 10000).toString() : "");
-    }, [initialValue]);
+        setValue(perAccountValue ? perAccountValue.toString() : "");
+    }, [perAccountValue]);
 
     const onBlur = () => {
         if (value && !disabled) {
-            onUpdate(date, Number(value) * 10000);
+            const accountValue = Number(value) * 10000;
+            const otherAccountsTotal = totalValue ? (totalValue - (totalValue / accountCount)) : 0;
+            const newTotal = otherAccountsTotal + accountValue;
+            onUpdate(date, newTotal);
         }
     };
 
@@ -58,8 +71,8 @@ const ActualCell = ({
             onChange={(e) => !disabled && setValue(e.target.value)}
             onBlur={onBlur}
             onKeyDown={onKeyDown}
-            className={`h-8 w-24 text-right bg-slate-800/50 border-slate-600 hover:border-slate-400 focus:border-yellow-500 focus:bg-slate-800 ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
-            placeholder={disabled ? "로그인" : "만원"}
+            className={`h-8 w-20 text-right bg-slate-800/50 border-slate-600 hover:border-slate-400 focus:border-yellow-500 focus:bg-slate-800 text-xs ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+            placeholder={disabled ? "-" : "만원"}
             disabled={disabled}
         />
     )
@@ -82,9 +95,10 @@ export function SimulationDashboard() {
             simSettings.scenarios,
             history,
             simSettings.startYear ?? 2025,
-            simSettings.endYear ?? 2050
+            simSettings.endYear ?? 2050,
+            simSettings.startMonth ?? 1
         );
-    }, [startBalance, simSettings.monthlyContribution, simSettings.scenarios, history, simSettings.startYear, simSettings.endYear]);
+    }, [startBalance, simSettings.monthlyContribution, simSettings.scenarios, history, simSettings.startYear, simSettings.endYear, simSettings.startMonth]);
 
     const formatMan = (val: number) => {
         const man = Math.round(val / 10000);
@@ -287,33 +301,41 @@ export function SimulationDashboard() {
                         <TableHeader className="sticky top-0 bg-card z-10">
                             <TableRow>
                                 <TableHead className="whitespace-nowrap">날짜</TableHead>
-                                <TableHead className="text-right whitespace-nowrap bg-yellow-500/10 border-x border-yellow-500/30">
-                                    <span className="text-yellow-500 font-bold">✏️ 실적</span>
+                                {simSettings.accounts.map((acc, idx) => (
+                                    <TableHead key={idx} className="text-right whitespace-nowrap bg-yellow-500/10 border-x border-yellow-500/30 min-w-[100px]">
+                                        <span className="text-yellow-500 font-bold text-xs">{acc.name}</span>
+                                    </TableHead>
+                                ))}
+                                <TableHead className="text-right whitespace-nowrap bg-cyan-500/10 border-x border-cyan-500/30">
+                                    <span className="text-cyan-400 font-bold">합계</span>
                                 </TableHead>
                                 <TableHead className="text-right whitespace-nowrap">차이</TableHead>
-                                <TableHead className="text-right whitespace-nowrap text-red-400">보수적</TableHead>
                                 <TableHead className="text-right whitespace-nowrap text-blue-400">중립적</TableHead>
-                                <TableHead className="text-right whitespace-nowrap text-green-400">공격적</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.map((row) => (
                                 <TableRow key={row.date}>
                                     <TableCell className="font-medium text-muted-foreground whitespace-nowrap">{row.monthLabel}</TableCell>
-                                    <TableCell className="text-right p-1 bg-yellow-500/5 border-x border-yellow-500/20">
-                                        <ActualCell
-                                            date={row.date}
-                                            initialValue={row.actual}
-                                            onUpdate={updateHistoryPoint}
-                                            disabled={isReadOnly}
-                                        />
+                                    {simSettings.accounts.map((acc, idx) => (
+                                        <TableCell key={idx} className="text-right p-1 bg-yellow-500/5 border-x border-yellow-500/20">
+                                            <AccountCell
+                                                date={row.date}
+                                                accountIndex={idx}
+                                                accountCount={simSettings.accounts.length}
+                                                totalValue={row.actual}
+                                                onUpdate={updateHistoryPoint}
+                                                disabled={isReadOnly}
+                                            />
+                                        </TableCell>
+                                    ))}
+                                    <TableCell className="text-right whitespace-nowrap bg-cyan-500/5 border-x border-cyan-500/20 font-bold text-cyan-400">
+                                        {row.actual ? formatMan(row.actual) : '-'}
                                     </TableCell>
                                     <TableCell className={`text-right whitespace-nowrap ${row.actual ? (row.actual - row.moderate >= 0 ? 'text-green-500' : 'text-red-500') : 'text-muted-foreground'}`}>
                                         {row.actual ? `${row.actual - row.moderate >= 0 ? '+' : ''}${formatMan(row.actual - row.moderate)}` : '-'}
                                     </TableCell>
-                                    <TableCell className="text-right whitespace-nowrap">{formatMan(row.conservative)}</TableCell>
                                     <TableCell className="text-right whitespace-nowrap">{formatMan(row.moderate)}</TableCell>
-                                    <TableCell className="text-right whitespace-nowrap">{formatMan(row.aggressive)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

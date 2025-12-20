@@ -249,11 +249,11 @@ export default function Home() {
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-green-500/5 backdrop-blur-sm">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <div className="p-1.5 rounded-lg bg-green-500/10">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+            <div className="p-1.5 rounded-lg bg-cyan-500/10">
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
             </div>
             <span>최근 1년 월별 배당금</span>
             <span className="text-xs text-muted-foreground font-normal">(단위: 만원)</span>
@@ -265,13 +265,13 @@ export default function Home() {
               <BarChart data={last12MonthsDividends}>
                 <defs>
                   <linearGradient id="dashboardBarGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
-                    <stop offset="100%" stopColor="#16a34a" stopOpacity={1} />
+                    <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity={1} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}`} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34, 211, 238, 0.1)' }} />
                 <Bar dataKey="value" fill="url(#dashboardBarGradient)" radius={[8, 8, 0, 0]} maxBarSize={60} animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>

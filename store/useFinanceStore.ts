@@ -32,6 +32,7 @@ interface SimulatorSettings {
     monthlyContribution: number;
     startDate: string; // "2025-09-01"
     startYear: number; // 2025
+    startMonth: number; // 1-12 (시작월)
     endYear: number;   // 2050
     birthYear?: number; // 출생년도 (나이 계산용)
 }
@@ -103,6 +104,7 @@ const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
     monthlyContribution: 500000,
     startDate: "2025-01-01",
     startYear: 2025,
+    startMonth: 1,
     endYear: 2050,
     birthYear: undefined,
 };
@@ -356,6 +358,7 @@ export const useFinanceStore = create<FinanceStore>()(
                             monthlyContribution: simSettingsData.monthly_contribution,
                             startDate: simSettingsData.start_date,
                             startYear: simSettingsData.start_year,
+                            startMonth: simSettingsData.start_month || 1,
                             endYear: simSettingsData.end_year,
                             birthYear: simSettingsData.birth_year || undefined,
                         };

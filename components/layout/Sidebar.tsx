@@ -64,10 +64,10 @@ export function Sidebar() {
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex-col">
             <div className="h-full flex flex-col">
                 <Link href="/" className="block p-6 border-b border-border hover:bg-accent/30 transition-colors cursor-pointer">
-                    <h1 className="text-2xl font-bold text-primary tracking-tight">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
                         FinDash (핀대시)
                     </h1>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                         Personal Asset Manager
                     </p>
                 </Link>

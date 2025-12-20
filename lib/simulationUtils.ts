@@ -14,11 +14,12 @@ export const generateSimulationData = (
     scenarios: { conservative: number; moderate: number; aggressive: number },
     history: { date: string; value: number }[],
     startYear: number = 2025,
-    endYear: number = 2050
+    endYear: number = 2050,
+    startMonth: number = 1
 ): SimulationDataPoint[] => {
     const data: SimulationDataPoint[] = [];
 
-    const startDate = new Date(startYear, 8); // Month is 0-indexed, so 8 is Sept
+    const startDate = new Date(startYear, startMonth - 1); // Month is 0-indexed
     const endDate = new Date(endYear, 11); // Dec
 
     const currentDate = new Date(startDate);

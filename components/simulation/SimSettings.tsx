@@ -75,7 +75,7 @@ export function SimSettings() {
                 {/* Period Settings */}
                 <div className="space-y-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
                     <h3 className="text-sm font-medium">Simulation Period (시뮬레이션 기간)</h3>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">Birth Year (출생년도)</Label>
                             <Input
@@ -88,7 +88,19 @@ export function SimSettings() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Start Year (시작년도)</Label>
+                            <Label className="text-xs text-muted-foreground">End Year (종료년도)</Label>
+                            <Input
+                                type="number"
+                                value={simSettings.endYear ?? 2050}
+                                onChange={(e) => updateSimSettings({ endYear: Number(e.target.value) })}
+                                className="text-right"
+                                disabled={isReadOnly}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">시작년도</Label>
                             <Input
                                 type="number"
                                 value={simSettings.startYear ?? 2025}
@@ -98,12 +110,15 @@ export function SimSettings() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">End Year (종료년도)</Label>
+                            <Label className="text-xs text-muted-foreground">시작월</Label>
                             <Input
                                 type="number"
-                                value={simSettings.endYear ?? 2050}
-                                onChange={(e) => updateSimSettings({ endYear: Number(e.target.value) })}
+                                min={1}
+                                max={12}
+                                value={simSettings.startMonth ?? 1}
+                                onChange={(e) => updateSimSettings({ startMonth: Math.min(12, Math.max(1, Number(e.target.value))) })}
                                 className="text-right"
+                                placeholder="1-12"
                                 disabled={isReadOnly}
                             />
                         </div>
@@ -182,7 +197,7 @@ export function SimSettings() {
                 {/* Accounts Initial Balances (in 만원) */}
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                        <h3 className="text-sm font-medium leading-none">Current Account Balances (현재 계좌 잔액)</h3>
+                        <h3 className="text-sm font-medium leading-none">초기 금액 (시작 잔액)</h3>
                         {!isReadOnly && (
                             <Button
                                 variant="outline"
