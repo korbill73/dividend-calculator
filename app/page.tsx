@@ -204,22 +204,26 @@ export default function Home() {
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-lg transition-all duration-300`}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-xl hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm`}
+            style={{ animationDelay: `${index * 100}ms` }}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
+            <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${stat.color} opacity-50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`} />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6 relative">
               <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-3 w-3 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
+              <div className={`p-1.5 md:p-2 rounded-lg bg-gradient-to-br ${stat.color}`}>
+                <stat.icon className={`h-3 w-3 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
+              </div>
             </CardHeader>
-            <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-              <div className={`text-sm md:text-2xl font-bold ${stat.iconColor}`}>
+            <CardContent className="p-2 pt-0 md:p-6 md:pt-0 relative">
+              <div className={`text-sm md:text-2xl font-bold ${stat.iconColor} drop-shadow-sm`}>
                 {stat.value}
               </div>
               <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5">
                 {stat.subtitle}
               </p>
-              <Button asChild variant="link" className={`px-0 ${stat.iconColor} h-auto py-0.5 md:py-2`}>
+              <Button asChild variant="link" className={`px-0 ${stat.iconColor} h-auto py-0.5 md:py-2 hover:brightness-125`}>
                 <Link href={stat.link} className="flex items-center gap-1 text-[9px] md:text-xs mt-0.5 md:mt-2">
                   {stat.linkText} <ArrowRight className="h-2 w-2 md:h-3 md:w-3" />
                 </Link>
@@ -229,11 +233,14 @@ export default function Home() {
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-green-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-            최근 1년 월별 배당금 (단위: 만원)
+            <div className="p-1.5 rounded-lg bg-green-500/10">
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+            </div>
+            <span>최근 1년 월별 배당금</span>
+            <span className="text-xs text-muted-foreground font-normal">(단위: 만원)</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
@@ -250,11 +257,14 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-blue-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-            시뮬레이션 자산 예상 (10/20/30년)
+            <div className="p-1.5 rounded-lg bg-blue-500/10">
+              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            </div>
+            <span>시뮬레이션 자산 예상</span>
+            <span className="text-xs text-muted-foreground font-normal">(10/20/30년)</span>
           </CardTitle>
           <CardDescription className="text-xs md:text-sm">
             현재 자산 {formatCurrency(totalSimAssets)} + 월 {formatCurrency(simSettings.monthlyContribution)} 적립 기준
@@ -301,11 +311,13 @@ export default function Home() {
       </Card>
 
       {portfolio.length > 0 && (
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-yellow-500/5 backdrop-blur-sm">
           <CardHeader className="p-3 md:p-6">
             <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-              <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-              {currentYear}년 배당 상위 종목
+              <div className="p-1.5 rounded-lg bg-yellow-500/10">
+                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
+              </div>
+              <span>{currentYear}년 배당 상위 종목</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 md:p-6 pt-0">
