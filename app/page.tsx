@@ -214,15 +214,15 @@ export default function Home() {
       linkText: "시뮬레이션"
     },
     {
-      title: "Annual Dividend (연간 배당)",
-      value: formatCurrency(annualDividend),
-      subtitle: `${currentYear}년 예상`,
-      icon: DollarSign,
-      color: "from-green-500/20 to-emerald-500/20",
-      borderColor: "border-green-500",
-      iconColor: "text-green-500",
-      link: "/dividends/history",
-      linkText: "배당 통계"
+      title: "Total Balance (총 자산 현황)",
+      value: formatCurrency(totalCurrentBalance),
+      subtitle: "시뮬레이션 기준",
+      icon: Wallet,
+      color: "from-amber-500/20 to-yellow-500/20",
+      borderColor: "border-amber-500",
+      iconColor: "text-amber-400",
+      link: "/simulation",
+      linkText: "자산 관리"
     },
     {
       title: "Dividend Yield (배당 수익률)",
@@ -247,9 +247,7 @@ export default function Home() {
         
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-amber-400/20 to-yellow-600/20 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/20 backdrop-blur-sm">
-              <img src="/logo.png" alt="Findash" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-            </div>
+            <img src="/logo-gold.png" alt="Findash" className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-lg mix-blend-lighten" />
             <div>
               <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
                 Findash Dashboard

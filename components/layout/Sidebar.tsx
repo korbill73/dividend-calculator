@@ -64,25 +64,20 @@ export function Sidebar() {
     return (
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex-col">
             <div className="h-full flex flex-col">
-                <Link href="/" className="block p-6 border-b border-cyan-500/20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:shadow-cyan-500/50 transition-all">
-                                <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse" />
-                        </div>
+                <Link href="/" className="block p-4 border-b border-amber-500/20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                        <img src="/logo-gold.png" alt="Findash" className="w-12 h-12 object-contain drop-shadow-lg mix-blend-lighten" />
                         <div>
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-300 bg-clip-text text-transparent tracking-tight">
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent tracking-tight">
                                 FinDash
                             </h1>
-                            <p className="text-[10px] text-cyan-400/80 font-medium -mt-0.5">
+                            <p className="text-[10px] text-amber-400/80 font-medium -mt-0.5">
                                 핀대시
                             </p>
                         </div>
                     </div>
                     <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                         Smart Asset Manager
                     </p>
                 </Link>
