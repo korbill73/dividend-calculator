@@ -16,9 +16,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "FinDash - Personal Finance",
   description: "Personal Dividend & Asset Management System",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 
 export default function RootLayout({
@@ -29,13 +31,18 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen bg-background text-foreground overflow-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <AuthProvider>
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-            {children}
-          </main>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 md:ml-64 pb-20 md:pb-0 overflow-y-auto">
+              <div className="p-4 md:p-8">
+                {children}
+              </div>
+            </main>
+            <MobileNav />
+          </div>
         </AuthProvider>
       </body>
     </html>
