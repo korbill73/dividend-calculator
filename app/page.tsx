@@ -109,9 +109,9 @@ export default function Home() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="text-sm">
-          <p className="font-semibold text-white mb-1">{label}</p>
-          <p className="text-green-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
+        <div className="bg-slate-900/95 border border-slate-600 rounded-lg px-3 py-2 shadow-xl">
+          <p className="font-semibold text-slate-200 text-sm mb-1">{label}</p>
+          <p className="text-green-400 font-bold text-base">{payload[0].value.toLocaleString()}만원</p>
         </div>
       );
     }
@@ -247,8 +247,8 @@ export default function Home() {
           <div className="h-[180px] md:h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={last12MonthsDividends}>
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}`} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}`} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                 <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -297,13 +297,13 @@ export default function Home() {
           <div className="h-[180px] md:h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={simulationProjections.chartData}>
-                <XAxis dataKey="year" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}만`} />
-                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()}만원`]} />
-                <Legend wrapperStyle={{ fontSize: '10px' }} />
-                <Line type="monotone" dataKey="conservative" stroke="#3b82f6" name="보수적(5%)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="moderate" stroke="#22c55e" name="중립적(8%)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="aggressive" stroke="#f97316" name="공격적(12%)" strokeWidth={2} dot={false} />
+                <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 10000 ? `${(v/10000).toFixed(1)}억` : `${v}만`} />
+                <Tooltip formatter={(value) => [Number(value) >= 10000 ? `${(Number(value)/10000).toFixed(2)}억원` : `${Number(value).toLocaleString()}만원`]} />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="conservative" stroke="#3b82f6" name="보수적" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="moderate" stroke="#22c55e" name="중립적" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="aggressive" stroke="#f97316" name="공격적" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -311,47 +311,87 @@ export default function Home() {
       </Card>
 
       {portfolio.length > 0 && (
-        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-yellow-500/5 backdrop-blur-sm">
-          <CardHeader className="p-3 md:p-6">
-            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-              <div className="p-1.5 rounded-lg bg-yellow-500/10">
-                <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-green-500/5 backdrop-blur-sm">
+            <CardHeader className="p-3 md:p-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+                <div className="p-1.5 rounded-lg bg-green-500/10">
+                  <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                </div>
+                <span>{currentYear}년 배당 Top 10</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 md:p-6 pt-0">
+              <div className="space-y-1.5">
+                {[...portfolio]
+                  .map(stock => {
+                    const yearDividend = (stock.yearlyDividends?.[currentYear] || Array(12).fill(0)).reduce((a: number, b: number) => a + b, 0);
+                    return { ...stock, yearDividend };
+                  })
+                  .sort((a, b) => b.yearDividend - a.yearDividend)
+                  .slice(0, 10)
+                  .map((stock, index) => {
+                    const percentage = annualDividend > 0 ? (stock.yearDividend / annualDividend) * 100 : 0;
+                    return (
+                      <div key={stock.id} className="flex items-center justify-between p-1.5 md:p-2 bg-slate-800/50 rounded-lg">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-bold text-[10px] md:text-xs">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[10px] md:text-xs truncate">{stock.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-[10px] md:text-xs text-green-400">{formatCurrency(stock.yearDividend)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
-              <span>{currentYear}년 배당 상위 종목</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 md:p-6 pt-0">
-            <div className="space-y-2">
-              {[...portfolio]
-                .map(stock => {
-                  const yearDividend = (stock.yearlyDividends?.[currentYear] || Array(12).fill(0)).reduce((a: number, b: number) => a + b, 0);
-                  return { ...stock, yearDividend };
-                })
-                .sort((a, b) => b.yearDividend - a.yearDividend)
-                .slice(0, 5)
-                .map((stock, index) => {
-                  const percentage = annualDividend > 0 ? (stock.yearDividend / annualDividend) * 100 : 0;
-                  return (
-                    <div key={stock.id} className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-bold text-xs md:text-sm">
-                          {index + 1}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
+            <CardHeader className="p-3 md:p-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+                <div className="p-1.5 rounded-lg bg-amber-500/10">
+                  <PieChart className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+                </div>
+                <span>{currentYear}년 투자 Top 10</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 md:p-6 pt-0">
+              <div className="space-y-1.5">
+                {[...portfolio]
+                  .map(stock => ({
+                    ...stock,
+                    totalValue: stock.quantity * stock.currentPrice
+                  }))
+                  .sort((a, b) => b.totalValue - a.totalValue)
+                  .slice(0, 10)
+                  .map((stock, index) => {
+                    const percentage = totalAssets > 0 ? (stock.totalValue / totalAssets) * 100 : 0;
+                    return (
+                      <div key={stock.id} className="flex items-center justify-between p-1.5 md:p-2 bg-slate-800/50 rounded-lg">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-[10px] md:text-xs">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[10px] md:text-xs truncate">{stock.name}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-xs md:text-sm truncate">{stock.name}</p>
-                          <p className="text-[10px] md:text-xs text-muted-foreground">{stock.ticker}</p>
+                        <div className="text-right">
+                          <p className="font-semibold text-[10px] md:text-xs text-amber-400">{formatCurrency(stock.totalValue)}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-xs md:text-sm text-green-400">{formatCurrency(stock.yearDividend)}</p>
-                        <p className="text-[10px] md:text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       <div className="border-t border-slate-700 pt-4 space-y-3">

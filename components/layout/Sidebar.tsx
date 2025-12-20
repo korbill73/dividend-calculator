@@ -63,14 +63,14 @@ export function Sidebar() {
     return (
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex-col">
             <div className="h-full flex flex-col">
-                <div className="p-6 border-b border-border">
+                <Link href="/" className="block p-6 border-b border-border hover:bg-accent/30 transition-colors cursor-pointer">
                     <h1 className="text-2xl font-bold text-primary tracking-tight">
                         FinDash (핀대시)
                     </h1>
                     <p className="text-xs text-muted-foreground mt-1">
                         Personal Asset Manager
                     </p>
-                </div>
+                </Link>
 
                 <nav className="flex-1 p-4 space-y-2">
                     {navItems.map((item) => (

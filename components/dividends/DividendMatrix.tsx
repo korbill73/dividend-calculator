@@ -165,9 +165,8 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                     {!isReadOnly && (
                         <Button
                             onClick={handleSave}
-                            className="gap-1 md:gap-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-4"
+                            className="gap-1 md:gap-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-4 bg-orange-500 hover:bg-orange-600 text-white"
                             disabled={isSaving}
-                            variant={saveSuccess ? "default" : "secondary"}
                         >
                             {isSaving ? (
                                 <>
@@ -208,19 +207,16 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                 <div className="text-xs text-slate-400 font-normal">Total Annual (연 합계)</div>
                             </th>
                             {portfolio.map(stock => (
-                                <th key={stock.id} className="min-w-[180px] max-w-[200px] p-3 border border-slate-700 bg-gradient-to-br from-blue-950 to-slate-900 font-medium relative group">
+                                <th key={stock.id} className="min-w-[135px] max-w-[150px] p-2 border border-slate-700 bg-gradient-to-br from-blue-950 to-slate-900 font-medium relative group">
                                     <textarea
-                                        className="w-full bg-transparent text-center font-bold text-blue-300 outline-none placeholder:text-slate-600 mb-1 resize-none overflow-hidden"
+                                        className="w-full bg-transparent text-center font-bold text-blue-300 outline-none placeholder:text-slate-600 mb-1 resize-none overflow-hidden text-xs"
                                         value={stock.name}
                                         onChange={(e) => handleUpdate(stock.id, 'name', e.target.value)}
                                         placeholder="Stock Name"
                                         rows={2}
-                                        style={{ minHeight: '3rem' }}
+                                        style={{ minHeight: '2.5rem' }}
                                         disabled={isReadOnly}
                                     />
-                                    <div className="text-xs text-slate-400 font-normal">
-                                        Annual: {formatCurrency(getCurrentYearDividends(stock).reduce((a, b) => a + b, 0))}
-                                    </div>
                                     {!isReadOnly && (
                                         <Button
                                             variant="ghost"
