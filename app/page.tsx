@@ -111,7 +111,7 @@ export default function Home() {
       return (
         <div className="text-sm">
           <p className="text-slate-200 font-semibold">{label}</p>
-          <p className="text-green-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
+          <p className="text-cyan-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
         </div>
       );
     }
