@@ -192,15 +192,15 @@ export default function Home() {
 
   const stats = [
     {
-      title: "Actual Assets (현재 자산)",
-      value: formatCurrency(totalAssets),
-      subtitle: `${portfolio.length}개 종목 보유`,
-      icon: PieChart,
-      color: "from-amber-500/20 to-orange-500/20",
+      title: "Total Balance (총 자산 현황)",
+      value: formatCurrency(totalCurrentBalance),
+      subtitle: "시뮬레이션 기준",
+      icon: Wallet,
+      color: "from-amber-500/20 to-yellow-500/20",
       borderColor: "border-amber-500",
-      iconColor: "text-amber-500",
-      link: "/dividends",
-      linkText: "배당 관리"
+      iconColor: "text-amber-400",
+      link: "/simulation",
+      linkText: "자산 관리"
     },
     {
       title: "Simulation Assets (시뮬레이션 자산)",
@@ -212,17 +212,6 @@ export default function Home() {
       iconColor: "text-blue-500",
       link: "/simulation",
       linkText: "시뮬레이션"
-    },
-    {
-      title: "Total Balance (총 자산 현황)",
-      value: formatCurrency(totalCurrentBalance),
-      subtitle: "시뮬레이션 기준",
-      icon: Wallet,
-      color: "from-amber-500/20 to-yellow-500/20",
-      borderColor: "border-amber-500",
-      iconColor: "text-amber-400",
-      link: "/simulation",
-      linkText: "자산 관리"
     },
     {
       title: "Dividend Yield (배당 수익률)",
@@ -247,9 +236,9 @@ export default function Home() {
         
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-4">
-            <img src="/logo-gold.png" alt="Findash" className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-lg mix-blend-lighten" />
+            <img src="/logo-gold.png" alt="Findash" className="w-24 h-24 md:w-36 md:h-36 object-contain drop-shadow-lg" />
             <div>
-              <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-amber-400 drop-shadow-sm">
                 Findash Dashboard
               </h1>
               <p className="text-[10px] md:text-sm text-slate-400">
@@ -281,7 +270,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <div>
               <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-1">총 자산 현황</p>
-              <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 bg-clip-text text-transparent">
+              <div className="text-2xl md:text-4xl font-bold text-amber-400">
                 {formatCurrency(totalCurrentBalance)}
               </div>
             </div>
@@ -293,7 +282,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         {stats.map((stat, index) => (
           <Card
             key={index}

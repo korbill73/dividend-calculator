@@ -66,7 +66,7 @@ export function Sidebar() {
             <div className="h-full flex flex-col">
                 <Link href="/" className="block p-4 border-b border-amber-500/20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all cursor-pointer group">
                     <div className="flex items-center gap-3">
-                        <img src="/logo-gold.png" alt="Findash" className="w-12 h-12 object-contain drop-shadow-lg mix-blend-lighten" />
+                        <img src="/logo-gold.png" alt="Findash" className="w-16 h-16 object-contain drop-shadow-lg" />
                         <div>
                             <h1 className="text-xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent tracking-tight">
                                 FinDash
