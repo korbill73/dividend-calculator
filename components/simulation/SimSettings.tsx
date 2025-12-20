@@ -7,13 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Save, Check, Loader2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function SimSettings() {
     const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName, addAccount, removeAccount, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    
+    const [localStartYear, setLocalStartYear] = useState(String(simSettings.startYear ?? 2025));
+    const [localStartMonth, setLocalStartMonth] = useState(String(simSettings.startMonth ?? 1));
+    
+    useEffect(() => {
+        setLocalStartYear(String(simSettings.startYear ?? 2025));
+        setLocalStartMonth(String(simSettings.startMonth ?? 1));
+    }, [simSettings.startYear, simSettings.startMonth]);
 
     const handleSave = async () => {
         if (!user) return;
@@ -102,9 +110,19 @@ export function SimSettings() {
                         <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">시작년도</Label>
                             <Input
-                                type="number"
-                                value={simSettings.startYear ?? 2025}
-                                onChange={(e) => updateSimSettings({ startYear: Number(e.target.value) })}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={localStartYear}
+                                onChange={(e) => setLocalStartYear(e.target.value)}
+                                onBlur={() => {
+                                    const num = parseInt(localStartYear, 10);
+                                    if (!isNaN(num)) {
+                                        updateSimSettings({ startYear: num });
+                                    } else {
+                                        setLocalStartYear(String(simSettings.startYear ?? 2025));
+                                    }
+                                }}
                                 className="text-right"
                                 disabled={isReadOnly}
                             />
@@ -112,11 +130,19 @@ export function SimSettings() {
                         <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">시작월</Label>
                             <Input
-                                type="number"
-                                min={1}
-                                max={12}
-                                value={simSettings.startMonth ?? 1}
-                                onChange={(e) => updateSimSettings({ startMonth: Math.min(12, Math.max(1, Number(e.target.value))) })}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={localStartMonth}
+                                onChange={(e) => setLocalStartMonth(e.target.value)}
+                                onBlur={() => {
+                                    const num = parseInt(localStartMonth, 10);
+                                    if (!isNaN(num)) {
+                                        updateSimSettings({ startMonth: Math.min(12, Math.max(1, num)) });
+                                    } else {
+                                        setLocalStartMonth(String(simSettings.startMonth ?? 1));
+                                    }
+                                }}
                                 className="text-right"
                                 placeholder="1-12"
                                 disabled={isReadOnly}

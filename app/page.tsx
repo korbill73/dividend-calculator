@@ -18,13 +18,16 @@ import {
   LogOut,
   Sparkles,
   Shield,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line, Legend } from "recharts";
 
 export default function Home() {
   const { portfolio, simSettings, history } = useFinanceStore();
   const { user, signOut } = useAuth();
+  const [selectedAccountForChart, setSelectedAccountForChart] = useState<string>("전체");
 
   const totalAssets = portfolio.reduce((acc, item) => acc + (item.quantity * item.currentPrice), 0);
   const totalSimAssets = simSettings.accounts.reduce((acc, accItem) => acc + accItem.balance, 0);
@@ -89,6 +92,59 @@ export default function Home() {
 
     return { projections, chartData };
   }, [totalSimAssets, simSettings]);
+
+  const latestAccountBalances = useMemo(() => {
+    const sortedHistory = [...history].sort((a, b) => {
+      return b.date.localeCompare(a.date);
+    });
+    const latestWithAccountValues = sortedHistory.find(h => h.accountValues && Object.keys(h.accountValues).length > 0);
+    return latestWithAccountValues?.accountValues || {};
+  }, [history]);
+
+  const totalCurrentBalance = useMemo(() => {
+    let total = 0;
+    for (const acc of simSettings.accounts) {
+      const currentBalance = latestAccountBalances[acc.name] ?? acc.balance;
+      total += currentBalance;
+    }
+    return total;
+  }, [simSettings.accounts, latestAccountBalances]);
+
+  const accountTrendChartData = useMemo(() => {
+    const historyWithAccountValues = history.filter(h => h.accountValues && Object.keys(h.accountValues).length > 0);
+    const sortedHistory = [...historyWithAccountValues].sort((a, b) => a.date.localeCompare(b.date));
+    
+    return sortedHistory.map(h => {
+      const [year, month] = h.date.split('-');
+      const dataPoint: { [key: string]: string | number } = {
+        name: `${year.slice(2)}.${month}`,
+      };
+      
+      if (selectedAccountForChart === "전체") {
+        let total = 0;
+        for (const acc of simSettings.accounts) {
+          const val = h.accountValues?.[acc.name] ?? 0;
+          dataPoint[acc.name] = Math.round(val / 10000);
+          total += val;
+        }
+        dataPoint["합계"] = Math.round(total / 10000);
+      } else {
+        dataPoint[selectedAccountForChart] = Math.round((h.accountValues?.[selectedAccountForChart] ?? 0) / 10000);
+      }
+      
+      return dataPoint;
+    });
+  }, [history, selectedAccountForChart, simSettings.accounts]);
+
+  const accountColors = useMemo(() => {
+    const colors = ['#22d3ee', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#22c55e'];
+    const colorMap: { [key: string]: string } = {};
+    simSettings.accounts.forEach((acc, idx) => {
+      colorMap[acc.name] = colors[idx % colors.length];
+    });
+    colorMap["합계"] = '#60a5fa';
+    return colorMap;
+  }, [simSettings.accounts]);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(val);
@@ -291,19 +347,174 @@ export default function Home() {
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
           <div className="space-y-2">
-            {simSettings.accounts.map((acc, idx) => (
-              <div key={idx} className="flex justify-between items-center bg-slate-800/50 rounded-lg p-2 md:p-3">
-                <span className="text-xs md:text-sm text-slate-300">{acc.name}</span>
-                <span className="text-sm md:text-base font-bold text-cyan-400">{formatCurrency(acc.balance)}</span>
-              </div>
-            ))}
-            <div className="flex justify-between items-center border-t border-slate-700 pt-2 mt-2">
+            <div className="hidden md:grid md:grid-cols-4 gap-2 text-xs text-muted-foreground mb-2 px-3">
+              <span>계좌명</span>
+              <span className="text-right">초기 잔고</span>
+              <span className="text-right">현재 잔고</span>
+              <span className="text-right">증감</span>
+            </div>
+            {simSettings.accounts.map((acc, idx) => {
+              const initialBalance = acc.balance;
+              const currentBalance = latestAccountBalances[acc.name] ?? initialBalance;
+              const change = currentBalance - initialBalance;
+              const hasChange = Object.keys(latestAccountBalances).length > 0;
+              return (
+                <div key={idx} className="bg-slate-800/50 rounded-lg p-2 md:p-3">
+                  <div className="md:hidden space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-slate-300">{acc.name}</span>
+                      <span className="text-sm font-bold text-cyan-400">{formatCurrency(currentBalance)}</span>
+                    </div>
+                    {hasChange && change !== 0 && (
+                      <div className="flex justify-end items-center gap-1">
+                        {change > 0 ? (
+                          <ArrowUpRight className="h-3 w-3 text-green-400" />
+                        ) : (
+                          <ArrowDownRight className="h-3 w-3 text-red-400" />
+                        )}
+                        <span className={`text-[10px] ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {change > 0 ? '+' : ''}{formatCurrency(change)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="hidden md:grid md:grid-cols-4 gap-2 items-center">
+                    <span className="text-sm text-slate-300">{acc.name}</span>
+                    <span className="text-sm text-right text-slate-400">{formatCurrency(initialBalance)}</span>
+                    <span className="text-sm text-right font-bold text-cyan-400">{formatCurrency(currentBalance)}</span>
+                    <div className="flex justify-end items-center gap-1">
+                      {hasChange && change !== 0 ? (
+                        <>
+                          {change > 0 ? (
+                            <ArrowUpRight className="h-4 w-4 text-green-400" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-red-400" />
+                          )}
+                          <span className={`text-sm font-medium ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {change > 0 ? '+' : ''}{formatCurrency(change)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-slate-500">-</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 items-center border-t border-slate-700 pt-2 mt-2 px-2 md:px-3">
               <span className="text-sm md:text-base font-medium">총 합계</span>
-              <span className="text-base md:text-xl font-bold text-blue-400">{formatCurrency(totalSimAssets)}</span>
+              <span className="hidden md:block text-sm text-right text-slate-400">{formatCurrency(totalSimAssets)}</span>
+              <span className="text-base md:text-xl font-bold text-blue-400 text-right md:text-right">{formatCurrency(totalCurrentBalance)}</span>
+              <div className="hidden md:flex justify-end items-center gap-1">
+                {(() => {
+                  const totalChange = totalCurrentBalance - totalSimAssets;
+                  const hasChange = Object.keys(latestAccountBalances).length > 0;
+                  if (hasChange && totalChange !== 0) {
+                    return (
+                      <>
+                        {totalChange > 0 ? (
+                          <ArrowUpRight className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-red-400" />
+                        )}
+                        <span className={`text-sm font-medium ${totalChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {totalChange > 0 ? '+' : ''}{formatCurrency(totalChange)}
+                        </span>
+                      </>
+                    );
+                  }
+                  return <span className="text-sm text-slate-500">-</span>;
+                })()}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* 계좌별 월별 변동추이 그래프 */}
+      {accountTrendChartData.length > 0 && (
+        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+              <div className="p-1.5 rounded-lg bg-cyan-500/10">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
+              </div>
+              <span>계좌별 월별 변동추이</span>
+              <span className="text-xs text-muted-foreground font-normal">(단위: 만원)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0 space-y-3">
+            <div className="flex flex-wrap gap-1 md:gap-2">
+              <Button
+                size="sm"
+                variant={selectedAccountForChart === "전체" ? "default" : "outline"}
+                onClick={() => setSelectedAccountForChart("전체")}
+                className="h-7 text-xs px-2 md:px-3"
+              >
+                전체
+              </Button>
+              {simSettings.accounts.map((acc) => (
+                <Button
+                  key={acc.name}
+                  size="sm"
+                  variant={selectedAccountForChart === acc.name ? "default" : "outline"}
+                  onClick={() => setSelectedAccountForChart(acc.name)}
+                  className="h-7 text-xs px-2 md:px-3"
+                >
+                  {acc.name}
+                </Button>
+              ))}
+            </div>
+            <div className="h-[200px] md:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={accountTrendChartData}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 10000 ? `${(v/10000).toFixed(1)}억` : `${v}만`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
+                    labelStyle={{ color: '#e2e8f0' }}
+                    cursor={{ strokeDasharray: '3 3' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  {selectedAccountForChart === "전체" ? (
+                    <>
+                      {simSettings.accounts.map((acc) => (
+                        <Line
+                          key={acc.name}
+                          type="monotone"
+                          dataKey={acc.name}
+                          stroke={accountColors[acc.name]}
+                          strokeWidth={1.5}
+                          dot={false}
+                          strokeOpacity={0.7}
+                        />
+                      ))}
+                      <Line
+                        key="합계"
+                        type="monotone"
+                        dataKey="합계"
+                        stroke={accountColors["합계"]}
+                        strokeWidth={3}
+                        dot={false}
+                        name="합계"
+                      />
+                    </>
+                  ) : (
+                    <Line
+                      type="monotone"
+                      dataKey={selectedAccountForChart}
+                      stroke={accountColors[selectedAccountForChart]}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-blue-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
