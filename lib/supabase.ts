@@ -125,6 +125,48 @@ export interface Database {
                     month_12?: number;
                 };
             };
+            user_sim_settings: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    scenarios: {
+                        conservative: number;
+                        moderate: number;
+                        aggressive: number;
+                    };
+                    accounts: {
+                        name: string;
+                        balance: number;
+                    }[];
+                    monthly_contribution: number;
+                    start_date: string;
+                    start_year: number;
+                    end_year: number;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    scenarios?: object;
+                    accounts?: object;
+                    monthly_contribution?: number;
+                    start_date?: string;
+                    start_year?: number;
+                    end_year?: number;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    scenarios?: object;
+                    accounts?: object;
+                    monthly_contribution?: number;
+                    start_date?: string;
+                    start_year?: number;
+                    end_year?: number;
+                    updated_at?: string;
+                };
+            };
         };
     };
 }

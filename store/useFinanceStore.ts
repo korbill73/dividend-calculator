@@ -90,21 +90,17 @@ const generateSampleHistory = () => {
 
 const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
     scenarios: {
-        conservative: 5,
-        moderate: 8,
-        aggressive: 12,
+        conservative: 7,
+        moderate: 10,
+        aggressive: 15,
     },
     accounts: [
-        { name: "Hantu IRP", balance: 15000000 },
-        { name: "NAMU IRP", balance: 10000000 },
-        { name: "ISA", balance: 12000000 },
-        { name: "Personal Pension", balance: 8000000 },
-        { name: "General Account", balance: 5000000 },
+        { name: "Hantu IRP", balance: 20000000 },
     ],
-    monthlyContribution: 1000000,
-    startDate: "2020-01-01",
-    startYear: 2020,
-    endYear: 2045,
+    monthlyContribution: 500000,
+    startDate: "2025-01-01",
+    startYear: 2025,
+    endYear: 2050,
 };
 
 const SAMPLE_PORTFOLIO: StockItem[] = [
@@ -325,12 +321,40 @@ export const useFinanceStore = create<FinanceStore>()(
                         return;
                     }
 
+                    // 2. Load simulation settings (regardless of portfolio state)
+                    const { data: simSettingsData, error: simSettingsError } = await supabase
+                        .from('user_sim_settings')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .single();
+
+                    if (simSettingsError && simSettingsError.code !== 'PGRST116') {
+                        console.error('Error loading sim settings:', simSettingsError);
+                    }
+
+                    // Load simSettings if available
+                    let loadedSimSettings: SimulatorSettings | null = null;
+                    if (simSettingsData) {
+                        loadedSimSettings = {
+                            scenarios: simSettingsData.scenarios as SimulatorSettings['scenarios'],
+                            accounts: simSettingsData.accounts as SimulatorSettings['accounts'],
+                            monthlyContribution: simSettingsData.monthly_contribution,
+                            startDate: simSettingsData.start_date,
+                            startYear: simSettingsData.start_year,
+                            endYear: simSettingsData.end_year,
+                        };
+                    }
+
                     if (!portfolioItems || portfolioItems.length === 0) {
-                        // No data in Supabase, keep localStorage data or empty
+                        // No portfolio data, but still apply simSettings if loaded
+                        if (loadedSimSettings) {
+                            set({ simSettings: loadedSimSettings });
+                            console.log('✅ Loaded sim settings from Supabase (no portfolio data)');
+                        }
                         return;
                     }
 
-                    // 2. Load yearly dividends for all portfolio items
+                    // 3. Load yearly dividends for all portfolio items
                     const portfolioIds = portfolioItems.map(item => item.id);
                     const { data: yearlyDividendsData, error: dividendsError } = await supabase
                         .from('yearly_dividends')
@@ -383,10 +407,14 @@ export const useFinanceStore = create<FinanceStore>()(
                         };
                     });
 
-                    // 4. Update store
-                    set({ portfolio: transformedPortfolio });
-
-                    console.log(`✅ Loaded ${transformedPortfolio.length} items from Supabase`);
+                    // 4. Update store with portfolio and simSettings
+                    if (loadedSimSettings) {
+                        set({ portfolio: transformedPortfolio, simSettings: loadedSimSettings });
+                        console.log(`✅ Loaded ${transformedPortfolio.length} items and sim settings from Supabase`);
+                    } else {
+                        set({ portfolio: transformedPortfolio });
+                        console.log(`✅ Loaded ${transformedPortfolio.length} items from Supabase`);
+                    }
                 } catch (error) {
                     console.error('Error in loadFromSupabase:', error);
                 }
@@ -470,6 +498,40 @@ export const useFinanceStore = create<FinanceStore>()(
                         }
                     }
                     
+                    // 3. Save simulation settings
+                    const simSettingsData = {
+                        user_id: userId,
+                        scenarios: state.simSettings.scenarios,
+                        accounts: state.simSettings.accounts,
+                        monthly_contribution: state.simSettings.monthlyContribution,
+                        start_date: state.simSettings.startDate,
+                        start_year: state.simSettings.startYear,
+                        end_year: state.simSettings.endYear,
+                        updated_at: new Date().toISOString(),
+                    };
+
+                    // Check if sim settings exist
+                    const { data: existingSimSettings } = await supabase
+                        .from('user_sim_settings')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .single();
+
+                    if (existingSimSettings) {
+                        const { error: simError } = await supabase
+                            .from('user_sim_settings')
+                            .update(simSettingsData)
+                            .eq('user_id', userId);
+
+                        if (simError) console.error('Error updating sim settings:', simError);
+                    } else {
+                        const { error: simError } = await supabase
+                            .from('user_sim_settings')
+                            .insert(simSettingsData);
+
+                        if (simError) console.error('Error inserting sim settings:', simError);
+                    }
+                    
                     console.log('✅ Saved to Supabase successfully');
                     return true;
                 } catch (error) {
@@ -488,7 +550,7 @@ export const useFinanceStore = create<FinanceStore>()(
             }
         }),
         {
-            name: 'finance-storage-v7', // v7: Added 2025 data and resetToSampleData function
+            name: 'finance-storage-v8', // v8: Updated default sim settings and added Supabase sync for simSettings
         }
     )
 );
