@@ -136,32 +136,19 @@ export function DividendPage() {
                                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                     />
                                     <Tooltip
-                                        cursor={{ fill: 'rgba(251, 191, 36, 0.1)' }}
-                                        contentStyle={{
-                                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                                            border: '1px solid rgba(251, 191, 36, 0.3)',
-                                            borderRadius: '12px',
-                                            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-                                            padding: '12px 16px',
-                                            backdropFilter: 'blur(10px)'
+                                        cursor={false}
+                                        wrapperStyle={{ outline: 'none' }}
+                                        content={({ active, payload, label }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="text-sm">
+                                                        <p className="text-slate-200 font-semibold">{label}월</p>
+                                                        <p className="text-yellow-400 font-bold">{Math.round((payload[0].value as number) / 10000).toLocaleString()}만원</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
                                         }}
-                                        labelStyle={{
-                                            color: '#fbbf24',
-                                            fontWeight: 'bold',
-                                            marginBottom: '8px',
-                                            fontSize: '14px'
-                                        }}
-                                        itemStyle={{
-                                            color: '#f3f4f6',
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            padding: '4px 0'
-                                        }}
-                                        formatter={(value: number | undefined) => [
-                                            formatCurrency(value || 0),
-                                            "배당금"
-                                        ]}
-                                        labelFormatter={(label) => `${label}월`}
                                     />
                                     <Bar
                                         dataKey="amount"

@@ -129,11 +129,21 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
         }, 0);
     });
 
+    // Auto-sort portfolio: 1) dividendDay, 2) total value descending
+    const sortedPortfolio = [...portfolio].sort((a, b) => {
+        const dayA = a.dividendDay || 99;
+        const dayB = b.dividendDay || 99;
+        if (dayA !== dayB) return dayA - dayB;
+        const valueA = a.quantity * a.currentPrice;
+        const valueB = b.quantity * b.currentPrice;
+        return valueB - valueA;
+    });
+
     return (
         <div className="space-y-3 md:space-y-4">
             <div className="flex flex-col gap-2">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                    <h2 className="text-base md:text-xl font-bold">배당 일정표</h2>
+                    <h2 className="text-base md:text-xl font-bold">나의 배당</h2>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
                         <Button
@@ -191,8 +201,17 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                 </div>
                 </div>
                 <div className="text-[10px] md:text-xs text-slate-400 bg-slate-800/30 rounded p-2 border border-slate-700">
-                    <span className="hidden md:inline">💡 수량과 가격을 입력하면 평가액이 계산됩니다. 월별 배당금은 직접 입력하세요. ← → 버튼으로 연도를 이동할 수 있습니다.</span>
-                    <span className="md:hidden">💡 가로 스크롤하여 더 많은 종목을 확인하세요</span>
+                    {isReadOnly ? (
+                        <>
+                            <span className="hidden md:inline">💡 로그인하면 나만의 배당 포트폴리오를 관리할 수 있습니다. 가로 스크롤하여 더 많은 종목을 확인하세요.</span>
+                            <span className="md:hidden">💡 로그인하면 나만의 배당 관리 가능</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="hidden md:inline">💡 수량과 가격을 입력하면 평가액이 계산됩니다. 월별 배당금은 직접 입력하세요. <strong className="text-orange-400">수정 후 반드시 저장 버튼을 클릭하세요!</strong></span>
+                            <span className="md:hidden">💡 수정 후 반드시 저장 버튼 클릭!</span>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -206,7 +225,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                 <div className="text-lg">{formatCurrency(grandTotalAnnual)}</div>
                                 <div className="text-xs text-slate-400 font-normal">Total Annual (연 합계)</div>
                             </th>
-                            {portfolio.map(stock => (
+                            {sortedPortfolio.map(stock => (
                                 <th key={stock.id} className="min-w-[135px] max-w-[150px] p-2 border border-slate-700 bg-gradient-to-br from-blue-950 to-slate-900 font-medium relative group">
                                     <textarea
                                         className="w-full bg-transparent text-center font-bold text-blue-300 outline-none placeholder:text-slate-600 mb-1 resize-none overflow-hidden text-xs"
@@ -236,7 +255,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                             <th className="p-2 border border-slate-700 text-right text-slate-400 text-xs font-medium sticky left-0 z-10 bg-slate-800/90">
                                 Info (정보)
                             </th>
-                            {portfolio.map(stock => (
+                            {sortedPortfolio.map(stock => (
                                 <td key={stock.id} className="p-2 border border-slate-700">
                                     <div className="grid grid-cols-2 gap-2 text-xs">
                                         <div className="flex flex-col">
@@ -275,7 +294,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                 <div>{formatCurrency(portfolio.reduce((sum, s) => sum + (s.quantity * s.currentPrice), 0))}</div>
                                 <div className="text-xs text-slate-400 font-normal">Total Value (총 평가액)</div>
                             </th>
-                            {portfolio.map(stock => (
+                            {sortedPortfolio.map(stock => (
                                 <td key={stock.id} className="p-2 border border-slate-700">
                                     <div className="flex flex-col text-xs gap-1.5 bg-slate-800/50 rounded p-2">
                                         <div className="flex justify-between items-center">
@@ -322,7 +341,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                     </td>
 
                                     {/* Stock columns */}
-                                    {portfolio.map(stock => {
+                                    {sortedPortfolio.map(stock => {
                                         const yearData = getCurrentYearDividends(stock);
                                         return (
                                             <td key={stock.id} className="p-0 border border-slate-700 text-right">
@@ -356,7 +375,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                                 <div>{formatCurrency(grandTotalAnnual)}</div>
                                 <div className="text-xs text-slate-400 font-normal">Total (합계)</div>
                             </td>
-                            {portfolio.map(stock => (
+                            {sortedPortfolio.map(stock => (
                                 <td key={stock.id} className="p-3 font-bold text-right text-blue-300 border border-slate-700">
                                     {formatCurrency(getCurrentYearDividends(stock).reduce((a, b) => a + b, 0))}
                                 </td>

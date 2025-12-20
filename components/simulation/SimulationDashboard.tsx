@@ -88,6 +88,11 @@ export function SimulationDashboard() {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(val);
     }
 
+    const formatMan = (val: number) => {
+        const man = Math.round(val / 10000);
+        return `${man.toLocaleString()}만원`;
+    }
+
     const latestActual = useMemo(() => {
         const actualData = history.filter(h => h.value > 0);
         if (actualData.length === 0) return null;
@@ -212,11 +217,24 @@ export function SimulationDashboard() {
                                     width={60}
                                 />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151' }}
-                                    itemStyle={{ color: '#f3f4f6' }}
-                                    formatter={(value: number | undefined) => [formatCurrency(value || 0), "Amount"]}
-                                    labelStyle={{ color: '#9ca3af' }}
-                                    itemSorter={(item: unknown) => -((item as { value?: number }).value || 0)}
+                                    cursor={false}
+                                    wrapperStyle={{ outline: 'none' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            const sortedPayload = [...payload].sort((a: any, b: any) => (b.value || 0) - (a.value || 0));
+                                            return (
+                                                <div className="text-sm space-y-1">
+                                                    <p className="text-slate-200 font-semibold">{label}</p>
+                                                    {sortedPayload.map((entry: any, index: number) => (
+                                                        <p key={index} style={{ color: entry.color }} className="font-bold">
+                                                            {entry.name}: {formatMan(entry.value || 0)}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
                                 />
                                 <Legend />
                                 <Line
@@ -261,14 +279,16 @@ export function SimulationDashboard() {
             {/* Bottom Section: Data Grid */}
             <Card className="flex-1 overflow-hidden flex flex-col">
                 <CardHeader className="p-3 md:p-6">
-                    <CardTitle className="text-sm md:text-base flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-                        상세 예측 데이터
-                        {user && (
-                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
-                                (<span className="text-yellow-500 font-semibold">Actual Result</span>에서 실제 값 입력)
-                            </span>
-                        )}
-                    </CardTitle>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <CardTitle className="text-sm md:text-base flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+                            상세 예측 데이터
+                            {user && (
+                                <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
+                                    (<span className="text-yellow-500 font-semibold">Actual Result</span>에서 실제 값 입력)
+                                </span>
+                            )}
+                        </CardTitle>
+                    </div>
                 </CardHeader>
                 <div className="flex-1 overflow-auto p-0">
                     <Table>
@@ -292,10 +312,10 @@ export function SimulationDashboard() {
                             {data.map((row) => (
                                 <TableRow key={row.date}>
                                     <TableCell className="font-medium text-muted-foreground">{row.monthLabel}</TableCell>
-                                    <TableCell className="text-right text-muted-foreground">{formatCurrency(row.investedCapital)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(row.conservative)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(row.moderate)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(row.aggressive)}</TableCell>
+                                    <TableCell className="text-right text-muted-foreground">{formatMan(row.investedCapital)}</TableCell>
+                                    <TableCell className="text-right">{formatMan(row.conservative)}</TableCell>
+                                    <TableCell className="text-right">{formatMan(row.moderate)}</TableCell>
+                                    <TableCell className="text-right">{formatMan(row.aggressive)}</TableCell>
                                     <TableCell className="text-right p-0 bg-yellow-500/5 border-l-2 border-yellow-500/30">
                                         <div className="flex justify-end pr-4">
                                             <ActualCell
@@ -307,7 +327,7 @@ export function SimulationDashboard() {
                                         </div>
                                     </TableCell>
                                     <TableCell className={`text-right ${row.actual ? (row.actual - row.moderate >= 0 ? 'text-green-500' : 'text-red-500') : 'text-muted-foreground'}`}>
-                                        {row.actual ? formatCurrency(row.actual - row.moderate) : '-'}
+                                        {row.actual ? formatMan(row.actual - row.moderate) : '-'}
                                     </TableCell>
                                 </TableRow>
                             ))}

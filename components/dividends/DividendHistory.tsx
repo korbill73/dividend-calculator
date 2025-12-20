@@ -62,6 +62,51 @@ export function DividendHistory() {
         });
     }, [portfolio]);
 
+    // Calculate monthly dividend trend by year
+    const monthlyTrendData = useMemo(() => {
+        const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+        const yearsSet = new Set<number>();
+        
+        portfolio.forEach(item => {
+            if (item.yearlyDividends) {
+                Object.keys(item.yearlyDividends).forEach(year => {
+                    yearsSet.add(Number(year));
+                });
+            }
+        });
+        
+        const years = Array.from(yearsSet).sort((a, b) => a - b);
+        
+        return months.map((month, monthIndex) => {
+            const dataPoint: { month: string; [key: string]: string | number } = { month };
+            
+            years.forEach(year => {
+                let monthTotal = 0;
+                portfolio.forEach(item => {
+                    const yearData = item.yearlyDividends?.[year] || Array(12).fill(0);
+                    monthTotal += yearData[monthIndex] || 0;
+                });
+                dataPoint[year.toString()] = Math.round(monthTotal / 10000);
+            });
+            
+            return dataPoint;
+        });
+    }, [portfolio]);
+
+    const years = useMemo(() => {
+        const yearsSet = new Set<number>();
+        portfolio.forEach(item => {
+            if (item.yearlyDividends) {
+                Object.keys(item.yearlyDividends).forEach(year => {
+                    yearsSet.add(Number(year));
+                });
+            }
+        });
+        return Array.from(yearsSet).sort((a, b) => a - b);
+    }, [portfolio]);
+
+    const yearColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+
     // Calculate cumulative dividends
     const cumulativeData = useMemo(() => {
         let cumulative = 0;
@@ -139,10 +184,71 @@ export function DividendHistory() {
                 </Card>
             </div>
 
+            {/* Monthly Dividend Trend by Year */}
+            <Card>
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-base md:text-lg">연도별 월별 배당금 추이</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">각 연도의 월별 배당금 비교 (단위: 만원)</CardDescription>
+                </CardHeader>
+                <CardContent className="p-2 md:p-6 pt-0">
+                    <div className="h-[250px] md:h-[400px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyTrendData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
+                                <XAxis
+                                    dataKey="month"
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => `${value}`}
+                                />
+                                <Tooltip
+                                    cursor={false}
+                                    wrapperStyle={{ outline: 'none' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="text-sm space-y-1">
+                                                    <p className="text-slate-200 font-semibold">{label}</p>
+                                                    {payload.map((entry: any, index: number) => (
+                                                        <p key={index} style={{ color: entry.color }} className="font-bold">
+                                                            {entry.name}년: {Number(entry.value).toLocaleString()}만원
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
+                                <Legend />
+                                {years.map((year, index) => (
+                                    <Bar
+                                        key={year}
+                                        dataKey={year.toString()}
+                                        name={year.toString()}
+                                        fill={yearColors[index % yearColors.length]}
+                                        radius={[4, 4, 0, 0]}
+                                        maxBarSize={40}
+                                    />
+                                ))}
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Annual Dividend Trend */}
             <Card>
                 <CardHeader className="p-3 md:p-6">
-                    <CardTitle className="text-base md:text-lg">연도별 배당금 추이</CardTitle>
+                    <CardTitle className="text-base md:text-lg">연도별 총 배당금</CardTitle>
                     <CardDescription className="text-xs md:text-sm">각 연도의 총 배당금 비교</CardDescription>
                 </CardHeader>
                 <CardContent className="p-2 md:p-6 pt-0">
@@ -168,24 +274,22 @@ export function DividendHistory() {
                                     fontSize={12}
                                     tickLine={false}
                                     axisLine={false}
-                                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                                    tickFormatter={(value) => `${Math.round(value / 10000)}만`}
                                 />
                                 <Tooltip
-                                    cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
-                                    contentStyle={{
-                                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                                        border: '1px solid rgba(34, 197, 94, 0.3)',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-                                        padding: '12px 16px',
+                                    cursor={false}
+                                    wrapperStyle={{ outline: 'none' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="text-sm">
+                                                    <p className="text-slate-200 font-semibold">{label}년</p>
+                                                    <p className="text-green-400 font-bold">{Math.round(Number(payload[0].value) / 10000).toLocaleString()}만원</p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
                                     }}
-                                    labelStyle={{
-                                        color: '#22c55e',
-                                        fontWeight: 'bold',
-                                        marginBottom: '8px',
-                                    }}
-                                    formatter={(value) => [formatCurrency(Number(value) || 0), "배당금"]}
-                                    labelFormatter={(label) => `${label}년`}
                                 />
                                 <Bar
                                     dataKey="totalDividend"
@@ -231,19 +335,23 @@ export function DividendHistory() {
                                     tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
                                 />
                                 <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                                        border: '1px solid rgba(59, 130, 246, 0.3)',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-                                        padding: '12px 16px',
+                                    cursor={false}
+                                    wrapperStyle={{ outline: 'none' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="text-sm space-y-1">
+                                                    <p className="text-slate-200 font-semibold">{label}년</p>
+                                                    {payload.map((entry: any, index: number) => (
+                                                        <p key={index} style={{ color: entry.color }} className="font-bold">
+                                                            {entry.name}: {Math.round(Number(entry.value) / 10000).toLocaleString()}만원
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                        return null;
                                     }}
-                                    labelStyle={{
-                                        color: '#3b82f6',
-                                        fontWeight: 'bold',
-                                    }}
-                                    formatter={(value) => [formatCurrency(Number(value) || 0), "누적"]}
-                                    labelFormatter={(label) => `${label}년`}
                                 />
                                 <Legend />
                                 <Line

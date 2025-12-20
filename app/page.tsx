@@ -109,9 +109,25 @@ export default function Home() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-900/95 border border-slate-600 rounded-lg px-3 py-2 shadow-xl">
-          <p className="font-semibold text-slate-200 text-sm mb-1">{label}</p>
-          <p className="text-green-400 font-bold text-base">{payload[0].value.toLocaleString()}만원</p>
+        <div className="text-sm">
+          <p className="text-slate-200 font-semibold">{label}</p>
+          <p className="text-green-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const SimLineTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="text-sm space-y-1">
+          <p className="text-slate-200 font-semibold">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="font-bold">
+              {entry.name}: {Number(entry.value).toLocaleString()}만원
+            </p>
+          ))}
         </div>
       );
     }
@@ -325,7 +341,7 @@ export default function Home() {
               <LineChart data={simulationProjections.chartData}>
                 <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 10000 ? `${(v/10000).toFixed(1)}억` : `${v}만`} />
-                <Tooltip formatter={(value) => [Number(value) >= 10000 ? `${(Number(value)/10000).toFixed(2)}억원` : `${Number(value).toLocaleString()}만원`]} />
+                <Tooltip content={<SimLineTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Line type="monotone" dataKey="conservative" stroke="#3b82f6" name="보수적" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" stroke="#22c55e" name="중립적" strokeWidth={2} dot={false} />

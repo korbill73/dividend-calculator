@@ -81,19 +81,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
+            // Reset to sample data first
+            const { useFinanceStore } = await import('@/store/useFinanceStore');
+            const resetToSampleData = useFinanceStore.getState().resetToSampleData;
+            resetToSampleData();
             
-            // Reset to sample data on logout
-            import('@/store/useFinanceStore').then(({ useFinanceStore }) => {
-                const resetToSampleData = useFinanceStore.getState().resetToSampleData;
-                resetToSampleData();
-            });
+            // Clear local state immediately
+            setUser(null);
+            setSession(null);
+            
+            // Sign out from Supabase (use 'local' scope for better mobile support)
+            await supabase.auth.signOut({ scope: 'local' });
             
             router.push('/login');
         } catch (error) {
             console.error('Error signing out:', error);
-            alert('로그아웃 중 오류가 발생했습니다.');
+            // Still navigate to login even if there's an error
+            setUser(null);
+            setSession(null);
+            router.push('/login');
         }
     };
 
