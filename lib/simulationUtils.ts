@@ -5,6 +5,7 @@ export interface SimulationDataPoint {
     moderate: number;
     aggressive: number;
     actual?: number;
+    accountValues?: { [accountName: string]: number };
     investedCapital: number; // Total principal put in
 }
 
@@ -12,7 +13,7 @@ export const generateSimulationData = (
     startBalance: number,
     monthlyContribution: number,
     scenarios: { conservative: number; moderate: number; aggressive: number },
-    history: { date: string; value: number }[],
+    history: { date: string; value: number; accountValues?: { [accountName: string]: number } }[],
     startYear: number = 2025,
     endYear: number = 2050,
     startMonth: number = 1
@@ -36,7 +37,7 @@ export const generateSimulationData = (
     const aRate = scenarios.aggressive / 100 / 12;
 
     // History map for fast lookup
-    const historyMap = new Map(history.map(h => [h.date, h.value]));
+    const historyMap = new Map(history.map(h => [h.date, { value: h.value, accountValues: h.accountValues }]));
 
     while (currentDate <= endDate) {
         const year = currentDate.getFullYear();
@@ -45,7 +46,9 @@ export const generateSimulationData = (
         const label = `${year}.${String(month).padStart(2, '0')}`;
 
         // Look for actual data
-        const actual = historyMap.get(dateStr);
+        const historyEntry = historyMap.get(dateStr);
+        const actual = historyEntry?.value;
+        const accountValues = historyEntry?.accountValues;
 
         data.push({
             date: dateStr,
@@ -54,6 +57,7 @@ export const generateSimulationData = (
             moderate: mBal,
             aggressive: aBal,
             actual: actual,
+            accountValues: accountValues,
             investedCapital: invested
         });
 

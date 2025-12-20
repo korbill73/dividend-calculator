@@ -30,32 +30,28 @@ import { Save, Loader2, Check } from "lucide-react";
 
 const AccountCell = ({
     date,
-    accountIndex,
-    accountCount,
-    totalValue,
+    accountName,
+    accountValue,
     onUpdate,
     disabled = false
 }: { 
     date: string, 
-    accountIndex: number,
-    accountCount: number,
-    totalValue: number | undefined, 
-    onUpdate: (d: string, v: number) => void, 
+    accountName: string,
+    accountValue: number | undefined, 
+    onUpdate: (d: string, accountName: string, v: number) => void, 
     disabled?: boolean 
 }) => {
-    const perAccountValue = totalValue ? Math.round(totalValue / accountCount / 10000) : undefined;
-    const [value, setValue] = useState(perAccountValue ? perAccountValue.toString() : "");
+    const displayValue = accountValue !== undefined ? Math.round(accountValue / 10000) : undefined;
+    const [value, setValue] = useState(displayValue !== undefined ? displayValue.toString() : "");
 
     useEffect(() => {
-        setValue(perAccountValue ? perAccountValue.toString() : "");
-    }, [perAccountValue]);
+        setValue(displayValue !== undefined ? displayValue.toString() : "");
+    }, [displayValue]);
 
     const onBlur = () => {
         if (value && !disabled) {
-            const accountValue = Number(value) * 10000;
-            const otherAccountsTotal = totalValue ? (totalValue - (totalValue / accountCount)) : 0;
-            const newTotal = otherAccountsTotal + accountValue;
-            onUpdate(date, newTotal);
+            const newValue = Number(value) * 10000;
+            onUpdate(date, accountName, newValue);
         }
     };
 
@@ -82,7 +78,7 @@ const AccountCell = ({
 }
 
 export function SimulationDashboard() {
-    const { simSettings, history, updateHistoryPoint, saveToSupabase } = useFinanceStore();
+    const { simSettings, history, updateAccountHistoryPoint, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -346,10 +342,9 @@ export function SimulationDashboard() {
                                         <TableCell key={idx} className="text-right p-1 bg-yellow-500/5 border-x border-yellow-500/20">
                                             <AccountCell
                                                 date={row.date}
-                                                accountIndex={idx}
-                                                accountCount={simSettings.accounts.length}
-                                                totalValue={row.actual}
-                                                onUpdate={updateHistoryPoint}
+                                                accountName={acc.name}
+                                                accountValue={row.accountValues?.[acc.name]}
+                                                onUpdate={updateAccountHistoryPoint}
                                                 disabled={isReadOnly}
                                             />
                                         </TableCell>

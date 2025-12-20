@@ -170,6 +170,27 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            user_account_history: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    date: string;
+                    account_name: string;
+                    value: number;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    date: string;
+                    account_name: string;
+                    value: number;
+                    created_at?: string;
+                };
+                Update: {
+                    value?: number;
+                };
+            };
         };
     };
 }

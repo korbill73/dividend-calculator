@@ -61,9 +61,10 @@ interface FinanceStore {
     resetToSampleData: () => void; // Reset to sample data (for logout)
 
     // History for Actual Performance tracking
-    history: { date: string; value: number }[]; // YYYY-MM
+    history: { date: string; value: number; accountValues?: { [accountName: string]: number } }[]; // YYYY-MM
     addHistoryPoint: (date: string, value: number) => void;
     updateHistoryPoint: (date: string, value: number) => void; // Update if exists
+    updateAccountHistoryPoint: (date: string, accountName: string, value: number) => void; // Update per-account value
 }
 
 // 비로그인 사용자를 위한 샘플 히스토리 데이터 생성 (2020-2024, 5년)
@@ -258,6 +259,24 @@ export const useFinanceStore = create<FinanceStore>()(
                 return { history: [...state.history, { date, value }] };
             }),
 
+            updateAccountHistoryPoint: (date, accountName, value) => set((state) => {
+                const existingPoint = state.history.find(h => h.date === date);
+                if (existingPoint) {
+                    return {
+                        history: state.history.map(h => {
+                            if (h.date === date) {
+                                const newAccountValues = { ...(h.accountValues ?? {}), [accountName]: value };
+                                const totalValue = Object.values(newAccountValues).reduce((sum, v) => sum + v, 0);
+                                return { ...h, value: totalValue, accountValues: newAccountValues };
+                            }
+                            return h;
+                        })
+                    };
+                }
+                const newAccountValues = { [accountName]: value };
+                return { history: [...state.history, { date, value, accountValues: newAccountValues }] };
+            }),
+
             portfolio: SAMPLE_PORTFOLIO,
 
             addItem: (item) => set((state) => ({ portfolio: [...state.portfolio, item] })),
@@ -375,9 +394,29 @@ export const useFinanceStore = create<FinanceStore>()(
                         console.error('Error loading history:', historyError);
                     }
 
+                    // 2.6. Load account history data
+                    const { data: accountHistoryData, error: accountHistoryError } = await supabase
+                        .from('user_account_history')
+                        .select('*')
+                        .eq('user_id', userId);
+
+                    if (accountHistoryError && accountHistoryError.code !== 'PGRST116') {
+                        console.error('Error loading account history:', accountHistoryError);
+                    }
+
+                    // Build accountValues map by date
+                    const accountValuesByDate: { [date: string]: { [accountName: string]: number } } = {};
+                    accountHistoryData?.forEach(ah => {
+                        if (!accountValuesByDate[ah.date]) {
+                            accountValuesByDate[ah.date] = {};
+                        }
+                        accountValuesByDate[ah.date][ah.account_name] = Number(ah.value);
+                    });
+
                     const loadedHistory = historyData?.map(h => ({
                         date: h.date,
-                        value: Number(h.value)
+                        value: Number(h.value),
+                        accountValues: accountValuesByDate[h.date] || undefined
                     })) || [];
 
                     if (!portfolioItems || portfolioItems.length === 0) {
@@ -586,6 +625,26 @@ export const useFinanceStore = create<FinanceStore>()(
                         if (historyError) {
                             console.error('Error saving history point:', historyError);
                         }
+
+                        // 4.1. Save account history data if exists
+                        if (point.accountValues) {
+                            for (const [accountName, value] of Object.entries(point.accountValues)) {
+                                const accountHistoryData = {
+                                    user_id: userId,
+                                    date: point.date,
+                                    account_name: accountName,
+                                    value: value,
+                                };
+
+                                const { error: accountHistoryError } = await supabase
+                                    .from('user_account_history')
+                                    .upsert(accountHistoryData, { onConflict: 'user_id,date,account_name' });
+
+                                if (accountHistoryError) {
+                                    console.error('Error saving account history point:', accountHistoryError);
+                                }
+                            }
+                        }
                     }
                     
                     console.log('✅ Saved to Supabase successfully');
@@ -606,7 +665,7 @@ export const useFinanceStore = create<FinanceStore>()(
             }
         }),
         {
-            name: 'finance-storage-v9', // v9: Added account add/remove and history Supabase sync
+            name: 'finance-storage-v10', // v10: Added per-account history tracking
         }
     )
 );
