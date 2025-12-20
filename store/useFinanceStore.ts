@@ -67,9 +67,55 @@ interface FinanceStore {
     updateAccountHistoryPoint: (date: string, accountName: string, value: number) => void; // Update per-account value
 }
 
-// 초기 히스토리 데이터 (빈 배열 - 실제 데이터는 DB에서 로드)
+// 비로그인 사용자를 위한 샘플 히스토리 데이터 생성 (2021-2025, 5년)
+const SAMPLE_ACCOUNTS = [
+    { name: "Hantu IRP", balance: 45000000 },
+    { name: "NAMU", balance: 32000000 },
+    { name: "KAKAO", balance: 28000000 },
+    { name: "ISA", balance: 18000000 },
+];
+
 const generateSampleHistory = (): { date: string; value: number; accountValues?: { [accountName: string]: number } }[] => {
-    return [];
+    const sampleHistory: { date: string; value: number; accountValues?: { [accountName: string]: number } }[] = [];
+    
+    // 각 계좌별 시작 잔액과 월별 증가율 설정
+    const accountSettings = [
+        { name: "Hantu IRP", startBalance: 15000000, monthlyGrowth: 0.008, monthlyContrib: 300000 },
+        { name: "NAMU", startBalance: 10000000, monthlyGrowth: 0.007, monthlyContrib: 200000 },
+        { name: "KAKAO", startBalance: 8000000, monthlyGrowth: 0.009, monthlyContrib: 150000 },
+        { name: "ISA", startBalance: 5000000, monthlyGrowth: 0.006, monthlyContrib: 100000 },
+    ];
+    
+    const currentBalances = accountSettings.map(a => a.startBalance);
+    
+    for (let year = 2021; year <= 2025; year++) {
+        for (let month = 1; month <= 12; month++) {
+            // 2025년은 현재 월까지만
+            if (year === 2025 && month > new Date().getMonth() + 1) break;
+            
+            const dateStr = `${year}-${String(month).padStart(2, '0')}`;
+            const accountValues: { [accountName: string]: number } = {};
+            let totalValue = 0;
+            
+            accountSettings.forEach((acc, idx) => {
+                // 월별 변동 (수익률 + 적립금 + 약간의 랜덤 변동)
+                const randomFactor = 1 + (Math.random() - 0.5) * 0.02; // +-1% 랜덤
+                currentBalances[idx] = Math.round(
+                    currentBalances[idx] * (1 + acc.monthlyGrowth * randomFactor) + acc.monthlyContrib
+                );
+                accountValues[acc.name] = currentBalances[idx];
+                totalValue += currentBalances[idx];
+            });
+            
+            sampleHistory.push({
+                date: dateStr,
+                value: totalValue,
+                accountValues
+            });
+        }
+    }
+    
+    return sampleHistory;
 };
 
 const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
@@ -78,15 +124,13 @@ const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
         moderate: 10,
         aggressive: 15,
     },
-    accounts: [
-        { name: "Hantu IRP", balance: 20000000 },
-    ],
-    monthlyContribution: 500000,
+    accounts: SAMPLE_ACCOUNTS,
+    monthlyContribution: 750000,
     startDate: "2025-01-01",
     startYear: 2025,
     startMonth: 1,
     endYear: 2050,
-    birthYear: undefined,
+    birthYear: 1985,
 };
 
 const SAMPLE_PORTFOLIO: StockItem[] = [
