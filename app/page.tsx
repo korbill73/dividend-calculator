@@ -165,9 +165,9 @@ export default function Home() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="text-sm">
+        <div className="text-sm bg-slate-900/95 border border-amber-500/20 rounded-lg px-3 py-2 shadow-lg">
           <p className="text-slate-200 font-semibold">{label}</p>
-          <p className="text-cyan-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
+          <p className="text-amber-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
         </div>
       );
     }
@@ -299,15 +299,16 @@ export default function Home() {
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-xl hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm`}
+            className={`relative overflow-hidden bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5 hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${stat.color} opacity-50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`} />
+            <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${stat.color} opacity-30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`} />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6 relative">
-              <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
+              <CardTitle className="text-[9px] md:text-sm font-medium leading-tight text-slate-300">
                 {stat.title}
               </CardTitle>
-              <div className={`p-1.5 md:p-2 rounded-lg bg-gradient-to-br ${stat.color}`}>
+              <div className={`p-1.5 md:p-2 rounded-lg bg-gradient-to-br ${stat.color} border border-slate-600/30`}>
                 <stat.icon className={`h-3 w-3 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
               </div>
             </CardHeader>
@@ -315,7 +316,7 @@ export default function Home() {
               <div className={`text-sm md:text-2xl font-bold ${stat.iconColor} drop-shadow-sm`}>
                 {stat.value}
               </div>
-              <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5">
+              <p className="text-[9px] md:text-xs text-slate-500 mt-0.5">
                 {stat.subtitle}
               </p>
               <Button asChild variant="link" className={`px-0 ${stat.iconColor} h-auto py-0.5 md:py-2 hover:brightness-125`}>
@@ -328,14 +329,14 @@ export default function Home() {
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <div className="p-1.5 rounded-lg bg-cyan-500/10">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
             </div>
-            <span>최근 1년 월별 배당금</span>
-            <span className="text-xs text-muted-foreground font-normal">(단위: 만원)</span>
+            <span className="text-slate-200">최근 1년 월별 배당금</span>
+            <span className="text-xs text-slate-500 font-normal">(단위: 만원)</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
@@ -344,13 +345,13 @@ export default function Home() {
               <BarChart data={last12MonthsDividends}>
                 <defs>
                   <linearGradient id="dashboardBarGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity={1} />
+                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={1} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}`} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34, 211, 238, 0.1)' }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(251, 191, 36, 0.1)' }} />
                 <Bar dataKey="value" fill="url(#dashboardBarGradient)" radius={[8, 8, 0, 0]} maxBarSize={60} animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>
@@ -359,13 +360,13 @@ export default function Home() {
       </Card>
 
       {/* 계좌별 잔고 표시 */}
-      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <div className="p-1.5 rounded-lg bg-cyan-500/10">
-              <Wallet className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <Wallet className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
             </div>
-            <span>계좌별 잔고 현황</span>
+            <span className="text-slate-200">계좌별 잔고 현황</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
@@ -386,7 +387,7 @@ export default function Home() {
                   <div className="md:hidden space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-slate-300">{acc.name}</span>
-                      <span className="text-sm font-bold text-cyan-400">{formatCurrency(currentBalance)}</span>
+                      <span className="text-sm font-bold text-amber-400">{formatCurrency(currentBalance)}</span>
                     </div>
                     {hasChange && change !== 0 && (
                       <div className="flex justify-end items-center gap-1">
@@ -404,7 +405,7 @@ export default function Home() {
                   <div className="hidden md:grid md:grid-cols-4 gap-2 items-center">
                     <span className="text-sm text-slate-300">{acc.name}</span>
                     <span className="text-sm text-right text-slate-400">{formatCurrency(initialBalance)}</span>
-                    <span className="text-sm text-right font-bold text-cyan-400">{formatCurrency(currentBalance)}</span>
+                    <span className="text-sm text-right font-bold text-amber-400">{formatCurrency(currentBalance)}</span>
                     <div className="flex justify-end items-center gap-1">
                       {hasChange && change !== 0 ? (
                         <>
@@ -428,7 +429,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 items-center border-t border-slate-700 pt-2 mt-2 px-2 md:px-3">
               <span className="text-sm md:text-base font-medium">총 합계</span>
               <span className="hidden md:block text-sm text-right text-slate-400">{formatCurrency(totalSimAssets)}</span>
-              <span className="text-base md:text-xl font-bold text-blue-400 text-right md:text-right">{formatCurrency(totalCurrentBalance)}</span>
+              <span className="text-base md:text-xl font-bold text-amber-400 text-right md:text-right">{formatCurrency(totalCurrentBalance)}</span>
               <div className="hidden md:flex justify-end items-center gap-1">
                 {(() => {
                   const totalChange = totalCurrentBalance - totalSimAssets;
@@ -457,14 +458,14 @@ export default function Home() {
 
       {/* 계좌별 월별 변동추이 그래프 */}
       {accountTrendChartData.length > 0 && (
-        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
+        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
           <CardHeader className="p-3 md:p-6">
             <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-              <div className="p-1.5 rounded-lg bg-cyan-500/10">
-                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
+              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
               </div>
-              <span>계좌별 월별 변동추이</span>
-              <span className="text-xs text-muted-foreground font-normal">(단위: 만원)</span>
+              <span className="text-slate-200">계좌별 월별 변동추이</span>
+              <span className="text-xs text-slate-500 font-normal">(단위: 만원)</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 md:p-6 pt-0 space-y-3">
@@ -539,16 +540,16 @@ export default function Home() {
         </Card>
       )}
 
-      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-blue-500/5 backdrop-blur-sm">
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <div className="p-1.5 rounded-lg bg-blue-500/10">
-              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
             </div>
-            <span>시뮬레이션 자산 예상</span>
-            <span className="text-xs text-muted-foreground font-normal">(10/20/30년)</span>
+            <span className="text-slate-200">시뮬레이션 자산 예상</span>
+            <span className="text-xs text-slate-500 font-normal">(10/20/30년)</span>
           </CardTitle>
-          <CardDescription className="text-xs md:text-sm">
+          <CardDescription className="text-xs md:text-sm text-slate-400">
             현재 자산 {formatCurrency(totalSimAssets)} + 월 {formatCurrency(simSettings.monthlyContribution)} 적립 기준
           </CardDescription>
         </CardHeader>
@@ -594,13 +595,13 @@ export default function Home() {
 
       {portfolio.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-green-500/5 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
             <CardHeader className="p-3 md:p-6">
               <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-                <div className="p-1.5 rounded-lg bg-green-500/10">
+                <div className="p-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
                   <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
                 </div>
-                <span>{currentYear}년 배당 Top 10</span>
+                <span className="text-slate-200">{currentYear}년 배당 Top 10</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 md:p-6 pt-0">
@@ -634,13 +635,13 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
             <CardHeader className="p-3 md:p-6">
               <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-                <div className="p-1.5 rounded-lg bg-amber-500/10">
+                <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
                   <PieChart className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
                 </div>
-                <span>{currentYear}년 투자 Top 10</span>
+                <span className="text-slate-200">{currentYear}년 투자 Top 10</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 md:p-6 pt-0">
@@ -676,12 +677,12 @@ export default function Home() {
         </div>
       )}
 
-      <div className="border-t border-slate-700 pt-4 space-y-3">
-        <Link href="/manual" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+      <div className="border-t border-amber-500/10 pt-4 space-y-3">
+        <Link href="/manual" className="flex items-center justify-center gap-2 text-slate-400 hover:text-amber-400 transition-colors">
           <BookOpen className="h-4 w-4" />
           <span className="text-sm">사용자 매뉴얼 보기</span>
         </Link>
-        <div className="flex items-center justify-center gap-2 text-[10px] md:text-xs text-muted-foreground/60">
+        <div className="flex items-center justify-center gap-2 text-[10px] md:text-xs text-slate-500">
           <Shield className="h-3 w-3" />
           <span>로그인 시 Google 계정의 이메일 주소와 이름만 수집됩니다</span>
         </div>
