@@ -239,37 +239,60 @@ export default function Home() {
 
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-white" />
+      {/* Premium Header Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/20 shadow-2xl shadow-amber-500/10 p-4 md:p-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-amber-500/5" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-amber-400/20 to-yellow-600/20 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/20 backdrop-blur-sm">
+              <img src="/logo.png" alt="Findash" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
+                Findash Dashboard
+              </h1>
+              <p className="text-[10px] md:text-sm text-slate-400">
+                {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다!"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              FinDash
-            </h1>
-            <p className="text-[10px] md:text-base text-muted-foreground">
-              {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다!"}
-            </p>
+          {user ? (
+            <Button 
+              onClick={() => signOut()} 
+              variant="outline"
+              className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4 border-amber-500/30 hover:bg-amber-500/10 hover:border-amber-500/50"
+            >
+              <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+              로그아웃
+            </Button>
+          ) : (
+            <Link href="/login">
+              <Button className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-900 font-semibold shadow-lg shadow-amber-500/25">
+                <LogIn className="h-3 w-3 md:h-4 md:w-4" />
+                로그인
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {/* Total Balance Display */}
+        <div className="relative mt-4 md:mt-6 pt-4 md:pt-6 border-t border-amber-500/20">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+            <div>
+              <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-1">총 자산 현황</p>
+              <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 bg-clip-text text-transparent">
+                {formatCurrency(totalCurrentBalance)}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] md:text-xs text-slate-400">
+              <Shield className="h-3 w-3 md:h-4 md:w-4 text-amber-500" />
+              <span>시뮬레이션 기준 최신 잔고</span>
+            </div>
           </div>
         </div>
-        {user ? (
-          <Button 
-            onClick={() => signOut()} 
-            variant="outline"
-            className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4"
-          >
-            <LogOut className="h-3 w-3 md:h-4 md:w-4" />
-            로그아웃
-          </Button>
-        ) : (
-          <Link href="/login">
-            <Button className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4">
-              <LogIn className="h-3 w-3 md:h-4 md:w-4" />
-              로그인
-            </Button>
-          </Link>
-        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
