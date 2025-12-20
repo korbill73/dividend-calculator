@@ -5,10 +5,27 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Save, Check, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export function SimSettings() {
-    const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName } = useFinanceStore();
+    const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+
+    const handleSave = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        setSaveSuccess(false);
+        const success = await saveToSupabase(user.id);
+        setIsSaving(false);
+        if (success) {
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        }
+    };
 
     // 총 계좌 잔액 계산
     const totalBalance = simSettings.accounts.reduce((sum, acc) => sum + acc.balance, 0);
@@ -28,6 +45,32 @@ export function SimSettings() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 md:space-y-6 p-3 pt-0 md:p-6 md:pt-0">
+
+                {/* Save Button */}
+                {user && (
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                    >
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                저장 중...
+                            </>
+                        ) : saveSuccess ? (
+                            <>
+                                <Check className="h-4 w-4 mr-2" />
+                                저장 완료!
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4 mr-2" />
+                                설정 저장
+                            </>
+                        )}
+                    </Button>
+                )}
 
                 {/* Period Settings */}
                 <div className="space-y-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
