@@ -73,7 +73,7 @@ Preferred communication style: Simple, everyday language.
 - **Environment Variables Required**:
   - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public anonymous key
-- **Database Tables**: `profiles`, `portfolio_items` (defined in `lib/supabase.ts`)
+- **Database Tables**: `profiles`, `portfolio_items`, `yearly_dividends`, `user_sim_settings` (defined in `lib/supabase.ts`)
 
 ### Cloudflare Pages (Deployment)
 - **Build Output**: Static export to `out` directory
