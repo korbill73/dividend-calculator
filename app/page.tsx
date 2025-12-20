@@ -257,6 +257,32 @@ export default function Home() {
         </CardContent>
       </Card>
 
+      {/* 계좌별 잔고 표시 */}
+      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-cyan-500/5 backdrop-blur-sm">
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+            <div className="p-1.5 rounded-lg bg-cyan-500/10">
+              <Wallet className="h-4 w-4 md:h-5 md:w-5 text-cyan-500" />
+            </div>
+            <span>계좌별 잔고 현황</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-2 md:p-6 pt-0">
+          <div className="space-y-2">
+            {simSettings.accounts.map((acc, idx) => (
+              <div key={idx} className="flex justify-between items-center bg-slate-800/50 rounded-lg p-2 md:p-3">
+                <span className="text-xs md:text-sm text-slate-300">{acc.name}</span>
+                <span className="text-sm md:text-base font-bold text-cyan-400">{formatCurrency(acc.balance)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between items-center border-t border-slate-700 pt-2 mt-2">
+              <span className="text-sm md:text-base font-medium">총 합계</span>
+              <span className="text-base md:text-xl font-bold text-blue-400">{formatCurrency(totalSimAssets)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-lg shadow-blue-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
           <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
