@@ -32,7 +32,18 @@ export function SimSettings() {
                 {/* Period Settings */}
                 <div className="space-y-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
                     <h3 className="text-sm font-medium">Simulation Period (시뮬레이션 기간)</h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Birth Year (출생년도)</Label>
+                            <Input
+                                type="number"
+                                value={simSettings.birthYear ?? ''}
+                                onChange={(e) => updateSimSettings({ birthYear: e.target.value ? Number(e.target.value) : undefined })}
+                                className="text-right"
+                                placeholder="예: 1985"
+                                disabled={isReadOnly}
+                            />
+                        </div>
                         <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">Start Year (시작년도)</Label>
                             <Input

@@ -198,7 +198,13 @@ export function SimulationDashboard() {
                                 <XAxis
                                     dataKey="monthLabel"
                                     stroke="#888"
-                                    minTickGap={50} // Show fewer ticks
+                                    minTickGap={50}
+                                    tickFormatter={(value) => {
+                                        if (!simSettings.birthYear) return value;
+                                        const year = parseInt(value.split('.')[0]);
+                                        const age = year - simSettings.birthYear;
+                                        return `${value} (${age}세)`;
+                                    }}
                                 />
                                 <YAxis
                                     stroke="#888"

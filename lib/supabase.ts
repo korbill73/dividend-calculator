@@ -142,6 +142,7 @@ export interface Database {
                     start_date: string;
                     start_year: number;
                     end_year: number;
+                    birth_year: number | null;
                     created_at: string;
                     updated_at: string;
                 };
@@ -154,6 +155,7 @@ export interface Database {
                     start_date?: string;
                     start_year?: number;
                     end_year?: number;
+                    birth_year?: number | null;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -164,6 +166,7 @@ export interface Database {
                     start_date?: string;
                     start_year?: number;
                     end_year?: number;
+                    birth_year?: number | null;
                     updated_at?: string;
                 };
             };

@@ -33,6 +33,7 @@ interface SimulatorSettings {
     startDate: string; // "2025-09-01"
     startYear: number; // 2025
     endYear: number;   // 2050
+    birthYear?: number; // 출생년도 (나이 계산용)
 }
 
 interface FinanceStore {
@@ -101,6 +102,7 @@ const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
     startDate: "2025-01-01",
     startYear: 2025,
     endYear: 2050,
+    birthYear: undefined,
 };
 
 const SAMPLE_PORTFOLIO: StockItem[] = [
@@ -342,6 +344,7 @@ export const useFinanceStore = create<FinanceStore>()(
                             startDate: simSettingsData.start_date,
                             startYear: simSettingsData.start_year,
                             endYear: simSettingsData.end_year,
+                            birthYear: simSettingsData.birth_year || undefined,
                         };
                     }
 
@@ -507,6 +510,7 @@ export const useFinanceStore = create<FinanceStore>()(
                         start_date: state.simSettings.startDate,
                         start_year: state.simSettings.startYear,
                         end_year: state.simSettings.endYear,
+                        birth_year: state.simSettings.birthYear || null,
                         updated_at: new Date().toISOString(),
                     };
 
