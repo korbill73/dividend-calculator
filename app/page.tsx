@@ -112,17 +112,17 @@ export default function Home() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다! 로그인하여 시작하세요"}
+          <p className="text-xs md:text-base text-muted-foreground mt-1">
+            {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다!"}
           </p>
         </div>
         {!user && (
           <Link href="/login">
-            <Button className="gap-2">
-              <LogIn className="h-4 w-4" />
+            <Button className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4">
+              <LogIn className="h-3 w-3 md:h-4 md:w-4" />
               로그인
             </Button>
           </Link>
@@ -130,32 +130,32 @@ export default function Home() {
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-lg hover:shadow-${stat.borderColor}/20 transition-all duration-300 hover:scale-105`}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-lg hover:shadow-${stat.borderColor}/20 transition-all duration-300 md:hover:scale-105`}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
+              <CardTitle className="text-[10px] md:text-sm font-medium leading-tight">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+              <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${stat.iconColor}`}>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className={`text-base md:text-2xl font-bold ${stat.iconColor}`}>
                 {stat.value}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
                 {stat.subtitle}
               </p>
-              <Button asChild variant="link" className={`px-0 ${stat.iconColor} hover:${stat.iconColor}/80`}>
-                <Link href={stat.link} className="flex items-center gap-1 text-xs mt-2">
-                  {stat.linkText} <ArrowRight className="h-3 w-3" />
+              <Button asChild variant="link" className={`px-0 ${stat.iconColor} hover:${stat.iconColor}/80 h-auto py-1 md:py-2`}>
+                <Link href={stat.link} className="flex items-center gap-1 text-[10px] md:text-xs mt-1 md:mt-2">
+                  {stat.linkText} <ArrowRight className="h-2.5 w-2.5 md:h-3 md:w-3" />
                 </Link>
               </Button>
             </CardContent>
-            <div className="absolute -right-6 -bottom-6 opacity-10">
+            <div className="absolute -right-6 -bottom-6 opacity-10 hidden md:block">
               <stat.icon className="h-24 w-24" />
             </div>
           </Card>
@@ -163,53 +163,53 @@ export default function Home() {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Monthly Contribution (월 불입금)
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
+            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
+              월 불입금
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-400">
+          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+            <div className="text-sm md:text-2xl font-bold text-green-400">
               {formatCurrency(simSettings.monthlyContribution)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
               매월 정기 투자금
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Next Month Dividend (다음달 배당)
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
+            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
+              다음달 배당
             </CardTitle>
-            <Calendar className="h-4 w-4 text-amber-500" />
+            <Calendar className="h-3 w-3 md:h-4 md:w-4 text-amber-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-400">
+          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+            <div className="text-sm md:text-2xl font-bold text-amber-400">
               {formatCurrency(nextMonthDividend)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
               {currentMonth + 2}월 예상 배당금
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Target Period (목표 기간)
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
+            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
+              목표 기간
             </CardTitle>
-            <Target className="h-4 w-4 text-blue-500" />
+            <Target className="h-3 w-3 md:h-4 md:w-4 text-blue-500 flex-shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-400">
+          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+            <div className="text-sm md:text-2xl font-bold text-blue-400">
               {simSettings.endYear - simSettings.startYear}년
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
               {simSettings.startYear} - {simSettings.endYear}
             </p>
           </CardContent>
@@ -217,9 +217,9 @@ export default function Home() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
         {/* Welcome Card */}
-        <Card className="col-span-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700">
+        <Card className="lg:col-span-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-yellow-500" />
@@ -305,7 +305,7 @@ export default function Home() {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+        <Card className="lg:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-500" />

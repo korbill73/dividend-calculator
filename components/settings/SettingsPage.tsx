@@ -133,21 +133,21 @@ export function SettingsPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
             <Card>
-                <CardHeader>
-                    <CardTitle>Data Management</CardTitle>
-                    <CardDescription>
-                        Backup your data or restore from a previous backup. Data is stored in your browser&apos;s LocalStorage by default.
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-base md:text-lg">데이터 관리</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
+                        데이터를 백업하거나 복원하세요. 기본적으로 브라우저 LocalStorage에 저장됩니다.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-8">
+                <CardContent className="space-y-6 md:space-y-8 p-3 pt-0 md:p-6 md:pt-0">
 
-                    <div className="flex flex-col space-y-4">
-                        <h3 className="text-lg font-medium">Backup</h3>
-                        <p className="text-sm text-muted-foreground">Download your current portfolio and simulation settings as a JSON file.</p>
-                        <Button onClick={handleDownload} className="w-fit gap-2">
-                            <Download className="h-4 w-4" /> Download Backup
+                    <div className="flex flex-col space-y-3 md:space-y-4">
+                        <h3 className="text-base md:text-lg font-medium">백업</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground">포트폴리오와 시뮬레이션 설정을 JSON 파일로 다운로드합니다.</p>
+                        <Button onClick={handleDownload} className="w-fit gap-2 text-xs md:text-sm h-8 md:h-10">
+                            <Download className="h-3 w-3 md:h-4 md:w-4" /> 백업 다운로드
                         </Button>
                     </div>
 

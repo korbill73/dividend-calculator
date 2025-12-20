@@ -88,65 +88,65 @@ export function DividendHistory() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4 md:grid-cols-4">
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">총 연도 수</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">총 연도</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-primary">{yearlyStats.length}년</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-lg md:text-2xl font-bold text-primary">{yearlyStats.length}년</div>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">
                             {yearlyStats[0]?.year} - {yearlyStats[yearlyStats.length - 1]?.year}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">누적 배당금</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">누적 배당</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-green-500">
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-sm md:text-2xl font-bold text-green-500">
                             {formatCurrency(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
                         </div>
-                        <p className="text-xs text-muted-foreground">전체 기간 합계</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">전체 기간 합계</p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">평균 연 배당금</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">연평균 배당</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-blue-500">
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-sm md:text-2xl font-bold text-blue-500">
                             {formatCurrency(
                                 yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length
                             )}
                         </div>
-                        <p className="text-xs text-muted-foreground">연평균</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">연평균</p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">평균 수익률</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">평균 수익률</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-yellow-500">
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-lg md:text-2xl font-bold text-yellow-500">
                             {(yearlyStats.reduce((sum, s) => sum + s.yieldRate, 0) / yearlyStats.length).toFixed(2)}%
                         </div>
-                        <p className="text-xs text-muted-foreground">연평균 배당수익률</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">연평균 배당수익률</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Annual Dividend Trend */}
             <Card>
-                <CardHeader>
-                    <CardTitle>연도별 배당금 추이</CardTitle>
-                    <CardDescription>각 연도의 총 배당금 비교</CardDescription>
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-base md:text-lg">연도별 배당금 추이</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">각 연도의 총 배당금 비교</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="h-[350px] w-full">
+                <CardContent className="p-2 md:p-6 pt-0">
+                    <div className="h-[200px] md:h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={yearlyStats}>
                                 <defs>
@@ -201,12 +201,12 @@ export function DividendHistory() {
 
             {/* Cumulative Dividend Chart */}
             <Card>
-                <CardHeader>
-                    <CardTitle>누적 배당금 추이</CardTitle>
-                    <CardDescription>시간에 따른 배당금 누적 현황</CardDescription>
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-base md:text-lg">누적 배당금 추이</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">시간에 따른 배당금 누적 현황</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="h-[350px] w-full">
+                <CardContent className="p-2 md:p-6 pt-0">
+                    <div className="h-[200px] md:h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={cumulativeData}>
                                 <defs>
@@ -272,13 +272,13 @@ export function DividendHistory() {
 
             {/* Yearly Statistics Table */}
             <Card>
-                <CardHeader>
-                    <CardTitle>연도별 상세 통계</CardTitle>
-                    <CardDescription>연도별 배당금 및 수익률 상세 데이터</CardDescription>
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-base md:text-lg">연도별 상세 통계</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">연도별 배당금 및 수익률 상세 데이터</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-2 md:p-6 pt-0">
                     <div className="overflow-x-auto">
-                        <table className="w-full border-collapse text-sm">
+                        <table className="w-full border-collapse text-xs md:text-sm">
                             <thead>
                                 <tr className="bg-slate-900 text-slate-200 border-b-2 border-blue-500/30">
                                     <th className="p-3 border border-slate-700 text-left font-bold">연도</th>

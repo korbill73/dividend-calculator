@@ -60,44 +60,44 @@ export function DividendPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Total Assets</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-primary">{formatCurrency(summary.totalAsset)}</div>
-                        <p className="text-xs text-muted-foreground">Portfolio Value</p>
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-sm md:text-2xl font-bold text-primary">{formatCurrency(summary.totalAsset)}</div>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Portfolio Value</p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Annual Dividends</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Annual Div</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-green-500">{formatCurrency(summary.annualDividend)}</div>
-                        <p className="text-xs text-muted-foreground">Est. Yearly Income</p>
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-sm md:text-2xl font-bold text-green-500">{formatCurrency(summary.annualDividend)}</div>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Est. Yearly Income</p>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Dividend Yield</CardTitle>
+                    <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Yield</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-yellow-500">{summary.yieldRate.toFixed(2)}%</div>
-                        <p className="text-xs text-muted-foreground">Realized Yield</p>
+                    <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+                        <div className="text-sm md:text-2xl font-bold text-yellow-500">{summary.yieldRate.toFixed(2)}%</div>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Realized Yield</p>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
                 <Card className="w-full overflow-hidden">
-                    <CardHeader>
-                        <CardTitle>Dividend Portfolio Matrix</CardTitle>
-                        <CardDescription>Manage your stock holdings and dividend schedule (종목 관리 및 배당 일정).</CardDescription>
+                    <CardHeader className="p-3 md:p-6">
+                        <CardTitle className="text-base md:text-lg">Dividend Portfolio</CardTitle>
+                        <CardDescription className="text-xs md:text-sm">종목 관리 및 배당 일정</CardDescription>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
+                    <CardContent className="overflow-x-auto p-2 md:p-6 pt-0">
                         <DividendMatrix
                             selectedYear={selectedYear}
                             onYearChange={setSelectedYear}
@@ -106,12 +106,12 @@ export function DividendPage() {
                 </Card>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Monthly Distribution - {selectedYear}</CardTitle>
-                        <CardDescription>Estimated dividend income per month for {selectedYear}.</CardDescription>
+                    <CardHeader className="p-3 md:p-6">
+                        <CardTitle className="text-base md:text-lg">Monthly Distribution - {selectedYear}</CardTitle>
+                        <CardDescription className="text-xs md:text-sm">월별 예상 배당금</CardDescription>
                     </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[300px] w-full">
+                    <CardContent className="pl-0 md:pl-2 p-2 md:p-6 pt-0">
+                        <div className="h-[200px] md:h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={summary.monthlyData}>
                                     <defs>

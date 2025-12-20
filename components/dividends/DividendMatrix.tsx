@@ -110,36 +110,36 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
     });
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Dividend Schedule (배당 일정표)</h2>
+        <div className="space-y-3 md:space-y-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                <h2 className="text-base md:text-xl font-bold">배당 일정표</h2>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
                         <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleYearChange(selectedYear - 1)}
-                            className="h-7"
+                            className="h-6 md:h-7 w-6 md:w-auto px-1 md:px-2"
                         >
                             ←
                         </Button>
-                        <span className="px-3 text-sm font-medium">{selectedYear}</span>
+                        <span className="px-2 md:px-3 text-xs md:text-sm font-medium">{selectedYear}</span>
                         <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleYearChange(selectedYear + 1)}
-                            className="h-7"
+                            className="h-6 md:h-7 w-6 md:w-auto px-1 md:px-2"
                         >
                             →
                         </Button>
                     </div>
                     <Button
                         onClick={handleAddStock}
-                        className="gap-2"
+                        className="gap-1 md:gap-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-4"
                         disabled={isReadOnly}
                         title={isReadOnly ? "로그인이 필요합니다" : ""}
                     >
-                        <Plus className="h-4 w-4" /> Add Stock (종목 추가)
+                        <Plus className="h-3 w-3 md:h-4 md:w-4" /> <span className="hidden md:inline">Add Stock</span><span className="md:hidden">추가</span>
                     </Button>
                 </div>
             </div>
@@ -317,7 +317,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                 </table>
             </div>
 
-            <div className="text-xs text-slate-400 space-y-1 bg-slate-800/30 rounded p-3 border border-slate-700">
+            <div className="text-[10px] md:text-xs text-slate-400 space-y-1 bg-slate-800/30 rounded p-2 md:p-3 border border-slate-700 hidden md:block">
                 <p>💡 <strong>Tips:</strong></p>
                 <ul className="list-disc list-inside space-y-0.5 ml-2">
                     <li>Enter Quantity (수량) and Price (가격) to calculate Total Value (평가액)</li>
@@ -325,6 +325,7 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                     <li>Use ← → buttons to navigate between years (연도 이동 버튼 사용)</li>
                 </ul>
             </div>
+            <p className="text-[10px] text-slate-500 md:hidden">💡 가로 스크롤하여 더 많은 종목을 확인하세요</p>
         </div>
     );
 }

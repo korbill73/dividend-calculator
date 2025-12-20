@@ -97,38 +97,38 @@ export function SimulationDashboard() {
     const actualDataCount = history.filter(h => h.value > 0).length;
 
     return (
-        <div className="flex flex-col gap-6 h-[calc(100vh-100px)]">
+        <div className="flex flex-col gap-4 md:gap-6 min-h-screen pb-4">
             {/* Actual Data Summary - 상단 추가 */}
             {user && (
                 <Card className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border-yellow-500/30">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                    <CardHeader className="pb-2 md:pb-3 p-3 md:p-6">
+                        <CardTitle className="text-sm md:text-lg flex items-center gap-2">
                             <span className="text-yellow-500">📊</span>
-                            Actual Performance Summary (실제 성과 요약)
+                            실제 성과 요약
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                        <div className="grid grid-cols-3 gap-2 md:gap-4">
                             <div>
-                                <p className="text-sm text-muted-foreground mb-1">Latest Actual (최신 실제값)</p>
-                                <p className="text-2xl font-bold text-yellow-500">
+                                <p className="text-[10px] md:text-sm text-muted-foreground mb-0.5 md:mb-1">최신 실제값</p>
+                                <p className="text-sm md:text-2xl font-bold text-yellow-500">
                                     {latestActual ? formatCurrency(latestActual.value) : '-'}
                                 </p>
                                 {latestActual && (
-                                    <p className="text-xs text-muted-foreground mt-1">{latestActual.date}</p>
+                                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">{latestActual.date}</p>
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground mb-1">Data Points (입력된 데이터)</p>
-                                <p className="text-2xl font-bold text-blue-400">
+                                <p className="text-[10px] md:text-sm text-muted-foreground mb-0.5 md:mb-1">입력 데이터</p>
+                                <p className="text-sm md:text-2xl font-bold text-blue-400">
                                     {actualDataCount}개월
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
                                     총 {data.length}개월 중
                                 </p>
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground mb-1">vs Moderate Target (목표 대비)</p>
+                                <p className="text-[10px] md:text-sm text-muted-foreground mb-0.5 md:mb-1">목표 대비</p>
                                 {latestActual ? (
                                     <>
                                         <p className={`text-2xl font-bold ${(() => {
@@ -145,7 +145,7 @@ export function SimulationDashboard() {
                                                 return (diff >= 0 ? '+' : '') + formatCurrency(diff);
                                             })()}
                                         </p>
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
                                             {(() => {
                                                 const targetRow = data.find(d => d.date === latestActual.date);
                                                 if (!targetRow) return '';
@@ -156,7 +156,7 @@ export function SimulationDashboard() {
                                         </p>
                                     </>
                                 ) : (
-                                    <p className="text-2xl font-bold text-muted-foreground">-</p>
+                                    <p className="text-sm md:text-2xl font-bold text-muted-foreground">-</p>
                                 )}
                             </div>
                         </div>
@@ -172,7 +172,7 @@ export function SimulationDashboard() {
             )}
 
             {/* Top Section: Settings & Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
                 {/* Settings Panel */}
                 <div className="lg:col-span-3">
                     <SimSettings />
@@ -180,10 +180,10 @@ export function SimulationDashboard() {
 
                 {/* Chart Panel */}
                 <Card className="lg:col-span-9 flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Asset Growth Projection (2025-2050)</CardTitle>
+                    <CardHeader className="p-3 md:p-6">
+                        <CardTitle className="text-sm md:text-base">자산 성장 예측 ({simSettings.startYear}-{simSettings.endYear})</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 min-h-[400px]">
+                    <CardContent className="flex-1 min-h-[250px] md:min-h-[400px] p-2 md:p-6 pt-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart
                                 data={data}
@@ -254,12 +254,12 @@ export function SimulationDashboard() {
 
             {/* Bottom Section: Data Grid */}
             <Card className="flex-1 overflow-hidden flex flex-col">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        Detailed Projection Data
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-sm md:text-base flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+                        상세 예측 데이터
                         {user && (
-                            <span className="text-sm font-normal text-muted-foreground">
-                                (아래 <span className="text-yellow-500 font-semibold">Actual Result</span> 열에서 실제 값을 입력하세요)
+                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
+                                (<span className="text-yellow-500 font-semibold">Actual Result</span>에서 실제 값 입력)
                             </span>
                         )}
                     </CardTitle>

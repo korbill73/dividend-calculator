@@ -18,16 +18,16 @@ export function SimSettings() {
 
     return (
         <Card className="h-full">
-            <CardHeader>
-                <CardTitle>Simulation Parameters</CardTitle>
-                <CardDescription>
+            <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-sm md:text-base">시뮬레이션 설정</CardTitle>
+                <CardDescription className="text-xs md:text-sm">
                     {isReadOnly
-                        ? "샘플 데이터를 확인하세요. 수정하려면 로그인이 필요합니다."
-                        : "Configure your assumptions and current status."
+                        ? "샘플 데이터 확인 중 (수정은 로그인 필요)"
+                        : "설정값을 수정하세요"
                     }
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6 p-3 pt-0 md:p-6 md:pt-0">
 
                 {/* Period Settings */}
                 <div className="space-y-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
