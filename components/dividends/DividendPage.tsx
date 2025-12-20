@@ -61,7 +61,7 @@ export function DividendPage() {
 
     return (
         <div className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
                         <CardTitle className="text-[10px] md:text-sm font-medium">Total Assets</CardTitle>
