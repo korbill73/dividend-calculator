@@ -40,6 +40,15 @@ export default function Home() {
     }, 0);
   }, [portfolio, currentYear]);
 
+  const cumulativeDividend = useMemo(() => {
+    return portfolio.reduce((sum, item) => {
+      if (!item.yearlyDividends) return sum;
+      return sum + Object.values(item.yearlyDividends).reduce((yearSum, yearData) => {
+        return yearSum + (yearData as number[]).reduce((a, b) => a + b, 0);
+      }, 0);
+    }, 0);
+  }, [portfolio]);
+
   const dividendYield = totalAssets > 0 ? (annualDividend / totalAssets) * 100 : 0;
 
   const last12MonthsDividends = useMemo(() => {
@@ -203,24 +212,24 @@ export default function Home() {
       linkText: "자산 관리"
     },
     {
-      title: "Simulation Assets (시뮬레이션 자산)",
-      value: formatCurrency(totalSimAssets),
-      subtitle: `${simSettings.accounts.length}개 계좌`,
-      icon: Wallet,
-      color: "from-blue-500/20 to-cyan-500/20",
-      borderColor: "border-blue-500",
-      iconColor: "text-blue-500",
-      link: "/simulation",
-      linkText: "시뮬레이션"
+      title: "올해 받은 배당",
+      value: formatCurrency(annualDividend),
+      subtitle: `${currentYear}년 배당금`,
+      icon: DollarSign,
+      color: "from-green-500/20 to-emerald-500/20",
+      borderColor: "border-green-500",
+      iconColor: "text-green-400",
+      link: "/dividends/history",
+      linkText: "배당 통계"
     },
     {
-      title: "Dividend Yield (배당 수익률)",
-      value: `${dividendYield.toFixed(2)}%`,
-      subtitle: "연간 실현 수익률",
-      icon: Percent,
-      color: "from-purple-500/20 to-pink-500/20",
-      borderColor: "border-purple-500",
-      iconColor: "text-purple-500",
+      title: "누적 배당",
+      value: formatCurrency(cumulativeDividend),
+      subtitle: "전체 기간 합계",
+      icon: TrendingUp,
+      color: "from-cyan-500/20 to-blue-500/20",
+      borderColor: "border-cyan-500",
+      iconColor: "text-cyan-400",
       link: "/dividends",
       linkText: "상세 보기"
     },
