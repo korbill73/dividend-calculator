@@ -131,8 +131,9 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
 
     return (
         <div className="space-y-3 md:space-y-4">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                <h2 className="text-base md:text-xl font-bold">배당 일정표</h2>
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <h2 className="text-base md:text-xl font-bold">배당 일정표</h2>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
                         <Button
@@ -188,6 +189,11 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                             )}
                         </Button>
                     )}
+                </div>
+                </div>
+                <div className="text-[10px] md:text-xs text-slate-400 bg-slate-800/30 rounded p-2 border border-slate-700">
+                    <span className="hidden md:inline">💡 수량과 가격을 입력하면 평가액이 계산됩니다. 월별 배당금은 직접 입력하세요. ← → 버튼으로 연도를 이동할 수 있습니다.</span>
+                    <span className="md:hidden">💡 가로 스크롤하여 더 많은 종목을 확인하세요</span>
                 </div>
             </div>
 
@@ -364,15 +370,6 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                 </table>
             </div>
 
-            <div className="text-[10px] md:text-xs text-slate-400 space-y-1 bg-slate-800/30 rounded p-2 md:p-3 border border-slate-700 hidden md:block">
-                <p>💡 <strong>Tips:</strong></p>
-                <ul className="list-disc list-inside space-y-0.5 ml-2">
-                    <li>Enter Quantity (수량) and Price (가격) to calculate Total Value (평가액)</li>
-                    <li>Monthly dividends are entered manually for precision (월별 배당금은 정확성을 위해 직접 입력)</li>
-                    <li>Use ← → buttons to navigate between years (연도 이동 버튼 사용)</li>
-                </ul>
-            </div>
-            <p className="text-[10px] text-slate-500 md:hidden">💡 가로 스크롤하여 더 많은 종목을 확인하세요</p>
         </div>
     );
 }

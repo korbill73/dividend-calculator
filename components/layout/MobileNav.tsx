@@ -42,12 +42,23 @@ const navItems = [
 export function MobileNav() {
     const pathname = usePathname();
 
+    const isNavActive = (href: string) => {
+        if (pathname === href) return true;
+        if (href === "/") return false;
+        if (href === "/dividends") {
+            return pathname === "/dividends";
+        }
+        if (href === "/dividends/history") {
+            return pathname === "/dividends/history" || pathname.startsWith("/dividends/history/");
+        }
+        return pathname.startsWith(href);
+    };
+
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-bottom">
             <div className="flex justify-around items-center h-16 px-2">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || 
-                        (item.href !== "/" && pathname.startsWith(item.href));
+                    const isActive = isNavActive(item.href);
                     
                     return (
                         <Link

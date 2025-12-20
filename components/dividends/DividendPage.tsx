@@ -64,29 +64,29 @@ export function DividendPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">Total Assets</CardTitle>
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Total Assets (총 자산)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
                         <div className="text-sm md:text-2xl font-bold text-primary">{formatCurrency(summary.totalAsset)}</div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Portfolio Value</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">포트폴리오 평가액</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">Annual Div</CardTitle>
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Annual Div (연간 배당)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
                         <div className="text-sm md:text-2xl font-bold text-green-500">{formatCurrency(summary.annualDividend)}</div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Est. Yearly Income</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">예상 연간 수익</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-1 md:pb-2 p-2 md:p-6">
-                        <CardTitle className="text-[10px] md:text-sm font-medium">Yield</CardTitle>
+                        <CardTitle className="text-[10px] md:text-sm font-medium">Yield (배당 수익률)</CardTitle>
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
                         <div className="text-sm md:text-2xl font-bold text-yellow-500">{summary.yieldRate.toFixed(2)}%</div>
-                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">Realized Yield</p>
+                        <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">실현 수익률</p>
                     </CardContent>
                 </Card>
             </div>

@@ -15,14 +15,16 @@ import {
   Percent,
   BookOpen,
   LogIn,
+  LogOut,
   Sparkles,
+  Shield,
 } from "lucide-react";
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line, Legend } from "recharts";
 
 export default function Home() {
   const { portfolio, simSettings, history } = useFinanceStore();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const totalAssets = portfolio.reduce((acc, item) => acc + (item.quantity * item.currentPrice), 0);
   const totalSimAssets = simSettings.accounts.reduce((acc, accItem) => acc + accItem.balance, 0);
@@ -96,6 +98,26 @@ export default function Home() {
     return `${val.toLocaleString()}만원`;
   };
 
+  const formatEok = (val: number) => {
+    const eok = val / 100000000;
+    if (eok >= 1) {
+      return `${eok.toFixed(1)}억`;
+    }
+    return `${Math.round(val / 10000).toLocaleString()}만원`;
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="text-sm">
+          <p className="font-semibold text-white mb-1">{label}</p>
+          <p className="text-green-400 font-bold">{payload[0].value.toLocaleString()}만원</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const stats = [
     {
       title: "Actual Assets (현재 자산)",
@@ -159,7 +181,16 @@ export default function Home() {
             </p>
           </div>
         </div>
-        {!user && (
+        {user ? (
+          <Button 
+            onClick={() => signOut()} 
+            variant="outline"
+            className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4"
+          >
+            <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+            로그아웃
+          </Button>
+        ) : (
           <Link href="/login">
             <Button className="gap-2 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4">
               <LogIn className="h-3 w-3 md:h-4 md:w-4" />
@@ -211,7 +242,7 @@ export default function Home() {
               <BarChart data={last12MonthsDividends}>
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}`} />
-                <Tooltip formatter={(value) => [`${value}만원`, '배당금']} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                 <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -233,19 +264,21 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             {simulationProjections.projections.map((p) => (
               <div key={p.years} className="bg-slate-800/50 rounded-lg p-2 md:p-4 text-center">
-                <div className="text-xs md:text-sm text-muted-foreground mb-1">{p.years}년 후</div>
+                <div className="text-xs md:text-sm text-muted-foreground mb-1">
+                  {p.years}년 후 <span className="text-primary">({currentYear + p.years}년)</span>
+                </div>
                 <div className="space-y-1">
                   <div className="text-[10px] md:text-xs">
                     <span className="text-blue-400">보수적:</span>
-                    <span className="font-bold ml-1">{formatMan(Math.round(p.conservative / 10000))}</span>
+                    <span className="font-bold ml-1">{formatEok(p.conservative)}</span>
                   </div>
                   <div className="text-[10px] md:text-xs">
                     <span className="text-green-400">중립적:</span>
-                    <span className="font-bold ml-1">{formatMan(Math.round(p.moderate / 10000))}</span>
+                    <span className="font-bold ml-1">{formatEok(p.moderate)}</span>
                   </div>
                   <div className="text-[10px] md:text-xs">
                     <span className="text-orange-400">공격적:</span>
-                    <span className="font-bold ml-1">{formatMan(Math.round(p.aggressive / 10000))}</span>
+                    <span className="font-bold ml-1">{formatEok(p.aggressive)}</span>
                   </div>
                 </div>
               </div>
@@ -271,43 +304,53 @@ export default function Home() {
         <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
           <CardHeader className="p-3 md:p-6">
             <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-              <PieChart className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
-              Top Holdings (상위 보유 종목)
+              <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+              {currentYear}년 배당 상위 종목
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 md:p-6 pt-0">
             <div className="space-y-2">
-              {portfolio.slice(0, 5).map((stock, index) => {
-                const value = stock.quantity * stock.currentPrice;
-                const percentage = (value / totalAssets) * 100;
-                return (
-                  <div key={stock.id} className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs md:text-sm">
-                        {index + 1}
+              {[...portfolio]
+                .map(stock => {
+                  const yearDividend = (stock.yearlyDividends?.[currentYear] || Array(12).fill(0)).reduce((a: number, b: number) => a + b, 0);
+                  return { ...stock, yearDividend };
+                })
+                .sort((a, b) => b.yearDividend - a.yearDividend)
+                .slice(0, 5)
+                .map((stock, index) => {
+                  const percentage = annualDividend > 0 ? (stock.yearDividend / annualDividend) * 100 : 0;
+                  return (
+                    <div key={stock.id} className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-bold text-xs md:text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-xs md:text-sm truncate">{stock.name}</p>
+                          <p className="text-[10px] md:text-xs text-muted-foreground">{stock.ticker}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-xs md:text-sm truncate">{stock.name}</p>
-                        <p className="text-[10px] md:text-xs text-muted-foreground">{stock.ticker}</p>
+                      <div className="text-right">
+                        <p className="font-semibold text-xs md:text-sm text-green-400">{formatCurrency(stock.yearDividend)}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-xs md:text-sm">{formatCurrency(value)}</p>
-                      <p className="text-[10px] md:text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="border-t border-slate-700 pt-4">
+      <div className="border-t border-slate-700 pt-4 space-y-3">
         <Link href="/manual" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
           <BookOpen className="h-4 w-4" />
           <span className="text-sm">사용자 매뉴얼 보기</span>
         </Link>
+        <div className="flex items-center justify-center gap-2 text-[10px] md:text-xs text-muted-foreground/60">
+          <Shield className="h-3 w-3" />
+          <span>로그인 시 Google 계정의 이메일 주소와 이름만 수집됩니다</span>
+        </div>
       </div>
     </div>
   );
