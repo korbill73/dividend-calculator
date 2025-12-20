@@ -1,7 +1,7 @@
 "use client";
 
 import { useFinanceStore } from "@/store/useFinanceStore";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
     LineChart,
     Line,
@@ -21,15 +21,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export function DividendHistory() {
     const { portfolio } = useFinanceStore();
+    const currentYear = new Date().getFullYear();
+    const [selectedTrendYear, setSelectedTrendYear] = useState(currentYear);
 
-    // Calculate yearly statistics
     const yearlyStats = useMemo(() => {
         const yearsSet = new Set<number>();
-
-        // Collect all years from portfolio
         portfolio.forEach(item => {
             if (item.yearlyDividends) {
                 Object.keys(item.yearlyDividends).forEach(year => {
@@ -53,43 +53,7 @@ export function DividendHistory() {
 
             const yieldRate = totalAsset > 0 ? (totalDividend / totalAsset) * 100 : 0;
 
-            return {
-                year,
-                totalDividend,
-                totalAsset,
-                yieldRate,
-            };
-        });
-    }, [portfolio]);
-
-    // Calculate monthly dividend trend by year
-    const monthlyTrendData = useMemo(() => {
-        const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-        const yearsSet = new Set<number>();
-        
-        portfolio.forEach(item => {
-            if (item.yearlyDividends) {
-                Object.keys(item.yearlyDividends).forEach(year => {
-                    yearsSet.add(Number(year));
-                });
-            }
-        });
-        
-        const years = Array.from(yearsSet).sort((a, b) => a - b);
-        
-        return months.map((month, monthIndex) => {
-            const dataPoint: { month: string; [key: string]: string | number } = { month };
-            
-            years.forEach(year => {
-                let monthTotal = 0;
-                portfolio.forEach(item => {
-                    const yearData = item.yearlyDividends?.[year] || Array(12).fill(0);
-                    monthTotal += yearData[monthIndex] || 0;
-                });
-                dataPoint[year.toString()] = Math.round(monthTotal / 10000);
-            });
-            
-            return dataPoint;
+            return { year, totalDividend, totalAsset, yieldRate };
         });
     }, [portfolio]);
 
@@ -105,24 +69,27 @@ export function DividendHistory() {
         return Array.from(yearsSet).sort((a, b) => a - b);
     }, [portfolio]);
 
-    const yearColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+    const singleYearMonthlyData = useMemo(() => {
+        const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+        return months.map((month, monthIndex) => {
+            let monthTotal = 0;
+            portfolio.forEach(item => {
+                const yearData = item.yearlyDividends?.[selectedTrendYear] || Array(12).fill(0);
+                monthTotal += yearData[monthIndex] || 0;
+            });
+            return { month, amount: monthTotal };
+        });
+    }, [portfolio, selectedTrendYear]);
 
-    // Calculate cumulative dividends
     const cumulativeData = useMemo(() => {
         let cumulative = 0;
         return yearlyStats.map(stat => {
             cumulative += stat.totalDividend;
-            return {
-                year: stat.year,
-                cumulative,
-                annual: stat.totalDividend,
-            };
+            return { year: stat.year, cumulative, annual: stat.totalDividend };
         });
     }, [yearlyStats]);
 
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(val);
-    };
+    const formatMan = (val: number) => `${Math.round(val / 10000).toLocaleString()}만원`;
 
     if (yearlyStats.length === 0) {
         return (
@@ -153,7 +120,7 @@ export function DividendHistory() {
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
                         <div className="text-sm md:text-2xl font-bold text-green-500">
-                            {formatCurrency(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
+                            {formatMan(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
                         </div>
                         <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">전체 기간 합계</p>
                     </CardContent>
@@ -164,9 +131,7 @@ export function DividendHistory() {
                     </CardHeader>
                     <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
                         <div className="text-sm md:text-2xl font-bold text-blue-500">
-                            {formatCurrency(
-                                yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length
-                            )}
+                            {formatMan(yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length)}
                         </div>
                         <p className="text-[9px] md:text-xs text-muted-foreground hidden md:block">연평균</p>
                     </CardContent>
@@ -184,61 +149,66 @@ export function DividendHistory() {
                 </Card>
             </div>
 
-            {/* Monthly Dividend Trend by Year */}
+            {/* Monthly Dividend Trend - Single Year Selection */}
             <Card>
                 <CardHeader className="p-3 md:p-6">
-                    <CardTitle className="text-base md:text-lg">연도별 월별 배당금 추이</CardTitle>
-                    <CardDescription className="text-xs md:text-sm">각 연도의 월별 배당금 비교 (단위: 만원)</CardDescription>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <div>
+                            <CardTitle className="text-base md:text-lg">월별 배당금 추이</CardTitle>
+                            <CardDescription className="text-xs md:text-sm">{selectedTrendYear}년 월별 배당금</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedTrendYear(y => Math.max(years[0] || currentYear, y - 1))}
+                                className="h-6 md:h-7 w-6 md:w-auto px-1 md:px-2"
+                                disabled={selectedTrendYear <= (years[0] || currentYear)}
+                            >
+                                ←
+                            </Button>
+                            <span className="px-2 md:px-3 text-xs md:text-sm font-medium min-w-[50px] text-center">{selectedTrendYear}</span>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedTrendYear(y => Math.min(years[years.length - 1] || currentYear, y + 1))}
+                                className="h-6 md:h-7 w-6 md:w-auto px-1 md:px-2"
+                                disabled={selectedTrendYear >= (years[years.length - 1] || currentYear)}
+                            >
+                                →
+                            </Button>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="p-2 md:p-6 pt-0">
-                    <div className="h-[250px] md:h-[400px] w-full">
+                    <div className="h-[200px] md:h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthlyTrendData}>
+                            <BarChart data={singleYearMonthlyData}>
+                                <defs>
+                                    <linearGradient id="barGradientMonthly" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="#eab308" stopOpacity={1} />
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
-                                <XAxis
-                                    dataKey="month"
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `${value}`}
-                                />
+                                <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${Math.round(v / 10000)}`} />
                                 <Tooltip
-                                    cursor={false}
+                                    cursor={{ fill: 'rgba(251, 191, 36, 0.1)' }}
                                     wrapperStyle={{ outline: 'none' }}
                                     content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
                                             return (
-                                                <div className="text-sm space-y-1">
+                                                <div className="text-sm">
                                                     <p className="text-slate-200 font-semibold">{label}</p>
-                                                    {payload.map((entry: any, index: number) => (
-                                                        <p key={index} style={{ color: entry.color }} className="font-bold">
-                                                            {entry.name}년: {Number(entry.value).toLocaleString()}만원
-                                                        </p>
-                                                    ))}
+                                                    <p className="text-yellow-400 font-bold">{formatMan(payload[0].value as number)}</p>
                                                 </div>
                                             );
                                         }
                                         return null;
                                     }}
                                 />
-                                <Legend />
-                                {years.map((year, index) => (
-                                    <Bar
-                                        key={year}
-                                        dataKey={year.toString()}
-                                        name={year.toString()}
-                                        fill={yearColors[index % yearColors.length]}
-                                        radius={[4, 4, 0, 0]}
-                                        maxBarSize={40}
-                                    />
-                                ))}
+                                <Bar dataKey="amount" fill="url(#barGradientMonthly)" radius={[8, 8, 0, 0]} maxBarSize={60} animationDuration={800} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -262,41 +232,24 @@ export function DividendHistory() {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
-                                <XAxis
-                                    dataKey="year"
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `${Math.round(value / 10000)}만`}
-                                />
+                                <XAxis dataKey="year" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${Math.round(v / 10000)}만`} />
                                 <Tooltip
-                                    cursor={false}
+                                    cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
                                     wrapperStyle={{ outline: 'none' }}
                                     content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
                                             return (
                                                 <div className="text-sm">
                                                     <p className="text-slate-200 font-semibold">{label}년</p>
-                                                    <p className="text-green-400 font-bold">{Math.round(Number(payload[0].value) / 10000).toLocaleString()}만원</p>
+                                                    <p className="text-green-400 font-bold">{formatMan(payload[0].value as number)}</p>
                                                 </div>
                                             );
                                         }
                                         return null;
                                     }}
                                 />
-                                <Bar
-                                    dataKey="totalDividend"
-                                    fill="url(#barGradientHistory)"
-                                    radius={[8, 8, 0, 0]}
-                                    maxBarSize={80}
-                                />
+                                <Bar dataKey="totalDividend" fill="url(#barGradientHistory)" radius={[8, 8, 0, 0]} maxBarSize={80} animationDuration={800} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -307,33 +260,15 @@ export function DividendHistory() {
             <Card>
                 <CardHeader className="p-3 md:p-6">
                     <CardTitle className="text-base md:text-lg">누적 배당금 추이</CardTitle>
-                    <CardDescription className="text-xs md:text-sm">시간에 따른 배당금 누적 현황</CardDescription>
+                    <CardDescription className="text-xs md:text-sm">시간에 따른 배당금 누적 현황 (단위: 만원)</CardDescription>
                 </CardHeader>
                 <CardContent className="p-2 md:p-6 pt-0">
                     <div className="h-[200px] md:h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={cumulativeData}>
-                                <defs>
-                                    <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.2} />
-                                    </linearGradient>
-                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                <XAxis
-                                    dataKey="year"
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-                                />
+                                <XAxis dataKey="year" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${Math.round(v / 10000)}`} />
                                 <Tooltip
                                     cursor={false}
                                     wrapperStyle={{ outline: 'none' }}
@@ -344,7 +279,7 @@ export function DividendHistory() {
                                                     <p className="text-slate-200 font-semibold">{label}년</p>
                                                     {payload.map((entry: any, index: number) => (
                                                         <p key={index} style={{ color: entry.color }} className="font-bold">
-                                                            {entry.name}: {Math.round(Number(entry.value) / 10000).toLocaleString()}만원
+                                                            {entry.name}: {formatMan(entry.value)}
                                                         </p>
                                                     ))}
                                                 </div>
@@ -354,24 +289,8 @@ export function DividendHistory() {
                                     }}
                                 />
                                 <Legend />
-                                <Line
-                                    type="monotone"
-                                    dataKey="cumulative"
-                                    stroke="#3b82f6"
-                                    strokeWidth={3}
-                                    dot={{ fill: '#3b82f6', r: 5 }}
-                                    activeDot={{ r: 8 }}
-                                    name="누적 배당금"
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="annual"
-                                    stroke="#22c55e"
-                                    strokeWidth={2}
-                                    strokeDasharray="5 5"
-                                    dot={{ fill: '#22c55e', r: 4 }}
-                                    name="연간 배당금"
-                                />
+                                <Line type="monotone" dataKey="cumulative" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 5 }} activeDot={{ r: 8 }} name="누적 배당금" />
+                                <Line type="monotone" dataKey="annual" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: '#22c55e', r: 4 }} name="연간 배당금" />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -399,27 +318,16 @@ export function DividendHistory() {
                             <tbody>
                                 {yearlyStats.map((stat, index) => {
                                     const prevYear = index > 0 ? yearlyStats[index - 1] : null;
-                                    const growth = prevYear
-                                        ? ((stat.totalDividend - prevYear.totalDividend) / prevYear.totalDividend) * 100
-                                        : 0;
+                                    const growth = prevYear ? ((stat.totalDividend - prevYear.totalDividend) / prevYear.totalDividend) * 100 : 0;
                                     const isPositive = growth > 0;
 
                                     return (
                                         <tr key={stat.year} className="hover:bg-slate-800/50 transition-colors">
-                                            <td className="p-3 border border-slate-700 font-bold text-blue-300">
-                                                {stat.year}
-                                            </td>
-                                            <td className="p-3 border border-slate-700 text-right text-green-400 font-semibold">
-                                                {formatCurrency(stat.totalDividend)}
-                                            </td>
-                                            <td className="p-3 border border-slate-700 text-right text-blue-400">
-                                                {formatCurrency(cumulativeData[index]?.cumulative || 0)}
-                                            </td>
-                                            <td className="p-3 border border-slate-700 text-right text-yellow-400 font-semibold">
-                                                {stat.yieldRate.toFixed(2)}%
-                                            </td>
-                                            <td className={`p-3 border border-slate-700 text-right font-semibold ${index === 0 ? 'text-slate-500' : isPositive ? 'text-green-400' : 'text-red-400'
-                                                }`}>
+                                            <td className="p-3 border border-slate-700 font-bold text-blue-300">{stat.year}</td>
+                                            <td className="p-3 border border-slate-700 text-right text-green-400 font-semibold">{formatMan(stat.totalDividend)}</td>
+                                            <td className="p-3 border border-slate-700 text-right text-blue-400">{formatMan(cumulativeData[index]?.cumulative || 0)}</td>
+                                            <td className="p-3 border border-slate-700 text-right text-yellow-400 font-semibold">{stat.yieldRate.toFixed(2)}%</td>
+                                            <td className={`p-3 border border-slate-700 text-right font-semibold ${index === 0 ? 'text-slate-500' : isPositive ? 'text-green-400' : 'text-red-400'}`}>
                                                 {index === 0 ? '-' : `${isPositive ? '+' : ''}${growth.toFixed(2)}%`}
                                             </td>
                                         </tr>
@@ -430,11 +338,11 @@ export function DividendHistory() {
                                 <tr className="bg-gradient-to-b from-slate-800 to-slate-900 text-slate-200 border-t-2 border-blue-500/50">
                                     <td className="p-3 font-bold text-yellow-400">평균/합계</td>
                                     <td className="p-3 text-right font-bold text-green-300">
-                                        {formatCurrency(yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length)}
+                                        {formatMan(yearlyStats.reduce((sum, s) => sum + s.totalDividend, 0) / yearlyStats.length)}
                                         <div className="text-xs text-slate-400">(연평균)</div>
                                     </td>
                                     <td className="p-3 text-right font-bold text-blue-300">
-                                        {formatCurrency(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
+                                        {formatMan(cumulativeData[cumulativeData.length - 1]?.cumulative || 0)}
                                         <div className="text-xs text-slate-400">(총합)</div>
                                     </td>
                                     <td className="p-3 text-right font-bold text-yellow-300">

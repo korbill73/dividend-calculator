@@ -263,10 +263,16 @@ export default function Home() {
           <div className="h-[180px] md:h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={last12MonthsDividends}>
+                <defs>
+                  <linearGradient id="dashboardBarGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#16a34a" stopOpacity={1} />
+                  </linearGradient>
+                </defs>
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}`} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }} />
+                <Bar dataKey="value" fill="url(#dashboardBarGradient)" radius={[8, 8, 0, 0]} maxBarSize={60} animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>
           </div>
