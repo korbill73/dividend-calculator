@@ -141,6 +141,7 @@ export interface Database {
                     monthly_contribution: number;
                     start_date: string;
                     start_year: number;
+                    start_month: number;
                     end_year: number;
                     birth_year: number | null;
                     created_at: string;
@@ -154,6 +155,7 @@ export interface Database {
                     monthly_contribution?: number;
                     start_date?: string;
                     start_year?: number;
+                    start_month?: number;
                     end_year?: number;
                     birth_year?: number | null;
                     created_at?: string;
@@ -165,6 +167,7 @@ export interface Database {
                     monthly_contribution?: number;
                     start_date?: string;
                     start_year?: number;
+                    start_month?: number;
                     end_year?: number;
                     birth_year?: number | null;
                     updated_at?: string;

@@ -67,30 +67,9 @@ interface FinanceStore {
     updateAccountHistoryPoint: (date: string, accountName: string, value: number) => void; // Update per-account value
 }
 
-// 비로그인 사용자를 위한 샘플 히스토리 데이터 생성 (2020-2024, 5년)
-const generateSampleHistory = () => {
-    const sampleHistory = [];
-    const startBalance = 50000000; // 5천만원 시작
-    const monthlyContribution = 1000000; // 월 100만원
-    const annualReturn = 0.08; // 연 8% 수익률
-    const monthlyReturn = Math.pow(1 + annualReturn, 1 / 12) - 1;
-
-    let currentBalance = startBalance;
-
-    for (let year = 2020; year <= 2024; year++) {
-        for (let month = 1; month <= 12; month++) {
-            // 월별 수익률 적용 + 월 불입금
-            currentBalance = currentBalance * (1 + monthlyReturn) + monthlyContribution;
-
-            const dateStr = `${year}-${String(month).padStart(2, '0')}`;
-            sampleHistory.push({
-                date: dateStr,
-                value: Math.round(currentBalance)
-            });
-        }
-    }
-
-    return sampleHistory;
+// 초기 히스토리 데이터 (빈 배열 - 실제 데이터는 DB에서 로드)
+const generateSampleHistory = (): { date: string; value: number; accountValues?: { [accountName: string]: number } }[] => {
+    return [];
 };
 
 const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
@@ -583,6 +562,7 @@ export const useFinanceStore = create<FinanceStore>()(
                         monthly_contribution: state.simSettings.monthlyContribution,
                         start_date: state.simSettings.startDate,
                         start_year: state.simSettings.startYear,
+                        start_month: state.simSettings.startMonth,
                         end_year: state.simSettings.endYear,
                         birth_year: state.simSettings.birthYear || null,
                         updated_at: new Date().toISOString(),
