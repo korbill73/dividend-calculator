@@ -4,7 +4,7 @@ import { useFinanceStore, StockItem } from "@/store/useFinanceStore";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, Check } from "lucide-react";
 
 // Helper for formatting currency
 const formatCurrency = (val: number) => {
@@ -17,10 +17,12 @@ interface DividendMatrixProps {
 }
 
 export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }: DividendMatrixProps = {}) {
-    const { portfolio, updateItem, removeItem, addItem } = useFinanceStore();
+    const { portfolio, updateItem, removeItem, addItem, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [localSelectedYear, setLocalSelectedYear] = useState(new Date().getFullYear());
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     // 로그인 여부
     const isReadOnly = !user;
@@ -95,6 +97,24 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
         addItem(newItem);
     };
 
+    const handleSave = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        setSaveSuccess(false);
+        
+        try {
+            const success = await saveToSupabase(user.id);
+            if (success) {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 2000);
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     // Calculate Grand Total for Annual (for selected year)
     const grandTotalAnnual = portfolio.reduce((sum, item) => {
         const yearData = getCurrentYearDividends(item);
@@ -141,6 +161,33 @@ export function DividendMatrix({ selectedYear: propSelectedYear, onYearChange }:
                     >
                         <Plus className="h-3 w-3 md:h-4 md:w-4" /> <span className="hidden md:inline">Add Stock</span><span className="md:hidden">추가</span>
                     </Button>
+                    {!isReadOnly && (
+                        <Button
+                            onClick={handleSave}
+                            className="gap-1 md:gap-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-4"
+                            disabled={isSaving}
+                            variant={saveSuccess ? "default" : "secondary"}
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
+                                    <span className="hidden md:inline">저장 중...</span>
+                                </>
+                            ) : saveSuccess ? (
+                                <>
+                                    <Check className="h-3 w-3 md:h-4 md:w-4" />
+                                    <span className="hidden md:inline">저장 완료</span>
+                                    <span className="md:hidden">완료</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-3 w-3 md:h-4 md:w-4" />
+                                    <span className="hidden md:inline">Save</span>
+                                    <span className="md:hidden">저장</span>
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </div>
             </div>
 

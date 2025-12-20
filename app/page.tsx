@@ -11,27 +11,22 @@ import {
   PieChart,
   Wallet,
   DollarSign,
-  Calendar,
   BarChart3,
   Percent,
-  Target,
-  Zap,
-  Activity,
   BookOpen,
   LogIn,
   Sparkles,
 } from "lucide-react";
 import { useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line, Legend } from "recharts";
 
 export default function Home() {
   const { portfolio, simSettings, history } = useFinanceStore();
   const { user } = useAuth();
 
-  // Portfolio calculations
   const totalAssets = portfolio.reduce((acc, item) => acc + (item.quantity * item.currentPrice), 0);
   const totalSimAssets = simSettings.accounts.reduce((acc, accItem) => acc + accItem.balance, 0);
 
-  // Annual dividend calculation (current year)
   const currentYear = new Date().getFullYear();
   const annualDividend = useMemo(() => {
     return portfolio.reduce((sum, item) => {
@@ -40,26 +35,71 @@ export default function Home() {
     }, 0);
   }, [portfolio, currentYear]);
 
-  // Dividend yield
   const dividendYield = totalAssets > 0 ? (annualDividend / totalAssets) * 100 : 0;
 
-  // Next month dividend
-  const currentMonth = new Date().getMonth();
-  const nextMonthDividend = portfolio.reduce((sum, item) => {
-    const yearData = item.yearlyDividends?.[currentYear] || Array(12).fill(0);
-    return sum + (yearData[currentMonth] || 0);
-  }, 0);
+  const last12MonthsDividends = useMemo(() => {
+    const months = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const monthTotal = portfolio.reduce((sum, item) => {
+        const yearData = item.yearlyDividends?.[year] || Array(12).fill(0);
+        return sum + (yearData[month] || 0);
+      }, 0);
+      months.push({
+        name: `${month + 1}월`,
+        value: Math.round(monthTotal / 10000),
+      });
+    }
+    return months;
+  }, [portfolio]);
 
-  // Recent history
-  const recentHistory = useMemo(() => {
-    return history.slice(-3).reverse();
-  }, [history]);
+  const simulationProjections = useMemo(() => {
+    const { conservative, moderate, aggressive } = simSettings.scenarios;
+    const calculate = (rate: number, years: number) => {
+      let balance = totalSimAssets;
+      const monthly = simSettings.monthlyContribution;
+      const monthlyRate = Math.pow(1 + rate / 100, 1 / 12) - 1;
+      for (let m = 0; m < years * 12; m++) {
+        balance = balance * (1 + monthlyRate) + monthly;
+      }
+      return Math.round(balance);
+    };
 
-  // Quick stats
+    const projections = [10, 20, 30].map(years => ({
+      years,
+      conservative: calculate(conservative, years),
+      moderate: calculate(moderate, years),
+      aggressive: calculate(aggressive, years),
+    }));
+
+    const chartData = [];
+    for (let y = 0; y <= 30; y += 5) {
+      chartData.push({
+        year: `${y}년`,
+        conservative: Math.round(calculate(conservative, y) / 10000),
+        moderate: Math.round(calculate(moderate, y) / 10000),
+        aggressive: Math.round(calculate(aggressive, y) / 10000),
+      });
+    }
+
+    return { projections, chartData };
+  }, [totalSimAssets, simSettings]);
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(val);
+  };
+
+  const formatMan = (val: number) => {
+    return `${val.toLocaleString()}만원`;
+  };
+
   const stats = [
     {
-      title: "Dividend Portfolio (배당 포트폴리오)",
-      value: new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(totalAssets),
+      title: "Actual Assets (현재 자산)",
+      value: formatCurrency(totalAssets),
       subtitle: `${portfolio.length}개 종목 보유`,
       icon: PieChart,
       color: "from-amber-500/20 to-orange-500/20",
@@ -70,7 +110,7 @@ export default function Home() {
     },
     {
       title: "Simulation Assets (시뮬레이션 자산)",
-      value: new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(totalSimAssets),
+      value: formatCurrency(totalSimAssets),
       subtitle: `${simSettings.accounts.length}개 계좌`,
       icon: Wallet,
       color: "from-blue-500/20 to-cyan-500/20",
@@ -81,7 +121,7 @@ export default function Home() {
     },
     {
       title: "Annual Dividend (연간 배당)",
-      value: new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(annualDividend),
+      value: formatCurrency(annualDividend),
       subtitle: `${currentYear}년 예상`,
       icon: DollarSign,
       color: "from-green-500/20 to-emerald-500/20",
@@ -103,21 +143,21 @@ export default function Home() {
     },
   ];
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(val);
-  };
-
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-xs md:text-base text-muted-foreground mt-1">
-            {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다!"}
-          </p>
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              FinDash
+            </h1>
+            <p className="text-[10px] md:text-base text-muted-foreground">
+              {user ? `안녕하세요, ${user.user_metadata?.full_name || user.email?.split('@')[0]}님` : "환영합니다!"}
+            </p>
+          </div>
         </div>
         {!user && (
           <Link href="/login">
@@ -129,285 +169,146 @@ export default function Home() {
         )}
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-lg hover:shadow-${stat.borderColor}/20 transition-all duration-300 md:hover:scale-105`}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} border-l-4 ${stat.borderColor} hover:shadow-lg transition-all duration-300`}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
-              <CardTitle className="text-[10px] md:text-sm font-medium leading-tight">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
+              <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
+              <stat.icon className={`h-3 w-3 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
             </CardHeader>
-            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-              <div className={`text-base md:text-2xl font-bold ${stat.iconColor}`}>
+            <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+              <div className={`text-sm md:text-2xl font-bold ${stat.iconColor}`}>
                 {stat.value}
               </div>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+              <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5">
                 {stat.subtitle}
               </p>
-              <Button asChild variant="link" className={`px-0 ${stat.iconColor} hover:${stat.iconColor}/80 h-auto py-1 md:py-2`}>
-                <Link href={stat.link} className="flex items-center gap-1 text-[10px] md:text-xs mt-1 md:mt-2">
-                  {stat.linkText} <ArrowRight className="h-2.5 w-2.5 md:h-3 md:w-3" />
+              <Button asChild variant="link" className={`px-0 ${stat.iconColor} h-auto py-0.5 md:py-2`}>
+                <Link href={stat.link} className="flex items-center gap-1 text-[9px] md:text-xs mt-0.5 md:mt-2">
+                  {stat.linkText} <ArrowRight className="h-2 w-2 md:h-3 md:w-3" />
                 </Link>
               </Button>
             </CardContent>
-            <div className="absolute -right-6 -bottom-6 opacity-10 hidden md:block">
-              <stat.icon className="h-24 w-24" />
-            </div>
           </Card>
         ))}
       </div>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-3 gap-2 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
-            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
-              월 불입금
-            </CardTitle>
-            <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-            <div className="text-sm md:text-2xl font-bold text-green-400">
-              {formatCurrency(simSettings.monthlyContribution)}
-            </div>
-            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
-              매월 정기 투자금
-            </p>
-          </CardContent>
-        </Card>
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+            <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+            최근 1년 월별 배당금 (단위: 만원)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-2 md:p-6 pt-0">
+          <div className="h-[180px] md:h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={last12MonthsDividends}>
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}`} />
+                <Tooltip formatter={(value) => [`${value}만원`, '배당금']} />
+                <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
-            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
-              다음달 배당
-            </CardTitle>
-            <Calendar className="h-3 w-3 md:h-4 md:w-4 text-amber-500 flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-            <div className="text-sm md:text-2xl font-bold text-amber-400">
-              {formatCurrency(nextMonthDividend)}
-            </div>
-            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
-              {currentMonth + 2}월 예상 배당금
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6">
-            <CardTitle className="text-[9px] md:text-sm font-medium leading-tight">
-              목표 기간
-            </CardTitle>
-            <Target className="h-3 w-3 md:h-4 md:w-4 text-blue-500 flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
-            <div className="text-sm md:text-2xl font-bold text-blue-400">
-              {simSettings.endYear - simSettings.startYear}년
-            </div>
-            <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 hidden md:block">
-              {simSettings.startYear} - {simSettings.endYear}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
-        {/* Welcome Card */}
-        <Card className="lg:col-span-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-yellow-500" />
-              <CardTitle className="text-2xl">FinDash에 오신 것을 환영합니다!</CardTitle>
-            </div>
-            <CardDescription className="text-base">
-              개인 자산 성장과 배당 추적을 위한 통합 대시보드
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {user ? (
-              <>
-                <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-green-400 font-semibold mb-2">
-                    <Activity className="h-5 w-5" />
-                    시작하기
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            시뮬레이션 자산 예상 (10/20/30년)
+          </CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            현재 자산 {formatCurrency(totalSimAssets)} + 월 {formatCurrency(simSettings.monthlyContribution)} 적립 기준
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-2 md:p-6 pt-0 space-y-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
+            {simulationProjections.projections.map((p) => (
+              <div key={p.years} className="bg-slate-800/50 rounded-lg p-2 md:p-4 text-center">
+                <div className="text-xs md:text-sm text-muted-foreground mb-1">{p.years}년 후</div>
+                <div className="space-y-1">
+                  <div className="text-[10px] md:text-xs">
+                    <span className="text-blue-400">보수적:</span>
+                    <span className="font-bold ml-1">{formatMan(Math.round(p.conservative / 10000))}</span>
                   </div>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      <strong>Dividend Tracker</strong>에서 보유 종목 추가
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      <strong>Simulation</strong>에서 장기 목표 설정
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      매월 실제 성과를 기록하여 목표와 비교
-                    </li>
-                  </ul>
-                </div>
-                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-400 font-semibold mb-2">
-                    <Zap className="h-5 w-5" />
-                    자동 저장
+                  <div className="text-[10px] md:text-xs">
+                    <span className="text-green-400">중립적:</span>
+                    <span className="font-bold ml-1">{formatMan(Math.round(p.moderate / 10000))}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    모든 데이터는 Supabase에 자동으로 저장됩니다. 다른 기기에서도 로그인하여 동일한 데이터에 접근할 수 있습니다.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-amber-400 font-semibold mb-2">
-                    <Activity className="h-5 w-5" />
-                    샘플 데이터로 체험하기
+                  <div className="text-[10px] md:text-xs">
+                    <span className="text-orange-400">공격적:</span>
+                    <span className="font-bold ml-1">{formatMan(Math.round(p.aggressive / 10000))}</span>
                   </div>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      7개 유명 ETF 샘플 데이터 확인
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      2020-2024년 5개년 시뮬레이션 확인
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      모든 기능을 미리 체험해보세요
-                    </li>
-                  </ul>
                 </div>
-                <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-primary font-semibold mb-2">
-                    <LogIn className="h-5 w-5" />
-                    로그인하여 시작하기
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    로그인하시면 데이터를 수정하고 저장할 수 있습니다.
-                  </p>
-                  <Link href="/login">
-                    <Button className="w-full gap-2">
-                      <LogIn className="h-4 w-4" />
-                      Google로 로그인
-                    </Button>
-                  </Link>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="lg:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              Quick Actions
-            </CardTitle>
-            <CardDescription>자주 사용하는 기능</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Link href="/dividends">
-              <Button variant="outline" className="w-full justify-start gap-2 hover:bg-amber-500/10 hover:border-amber-500/50">
-                <PieChart className="h-4 w-4 text-amber-500" />
-                배당 포트폴리오 관리
-              </Button>
-            </Link>
-            <Link href="/simulation">
-              <Button variant="outline" className="w-full justify-start gap-2 hover:bg-blue-500/10 hover:border-blue-500/50">
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-                자산 시뮬레이션
-              </Button>
-            </Link>
-            <Link href="/dividends/history">
-              <Button variant="outline" className="w-full justify-start gap-2 hover:bg-green-500/10 hover:border-green-500/50">
-                <BarChart3 className="h-4 w-4 text-green-500" />
-                배당 통계 확인
-              </Button>
-            </Link>
-            <Link href="/manual">
-              <Button variant="outline" className="w-full justify-start gap-2 hover:bg-purple-500/10 hover:border-purple-500/50">
-                <BookOpen className="h-4 w-4 text-purple-500" />
-                사용자 매뉴얼
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Portfolio Overview & Recent Activity */}
-      {portfolio.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="h-5 w-5 text-amber-500" />
-                Top Holdings
-              </CardTitle>
-              <CardDescription>상위 보유 종목</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {portfolio.slice(0, 5).map((stock, index) => {
-                  const value = stock.quantity * stock.currentPrice;
-                  const percentage = (value / totalAssets) * 100;
-                  return (
-                    <div key={stock.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{stock.name}</p>
-                          <p className="text-xs text-muted-foreground">{stock.ticker}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(value)}</p>
-                        <p className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+          <div className="h-[180px] md:h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={simulationProjections.chartData}>
+                <XAxis dataKey="year" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}만`} />
+                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()}만원`]} />
+                <Legend wrapperStyle={{ fontSize: '10px' }} />
+                <Line type="monotone" dataKey="conservative" stroke="#3b82f6" name="보수적(5%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="moderate" stroke="#22c55e" name="중립적(8%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="aggressive" stroke="#f97316" name="공격적(12%)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-          {recentHistory.length > 0 && (
-            <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-green-500" />
-                  Recent Performance
-                </CardTitle>
-                <CardDescription>최근 실제 성과</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentHistory.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{record.date}</p>
-                        <p className="text-xs text-muted-foreground">기록된 자산</p>
+      {portfolio.length > 0 && (
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+              <PieChart className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+              Top Holdings (상위 보유 종목)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
+            <div className="space-y-2">
+              {portfolio.slice(0, 5).map((stock, index) => {
+                const value = stock.quantity * stock.currentPrice;
+                const percentage = (value / totalAssets) * 100;
+                return (
+                  <div key={stock.id} className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs md:text-sm">
+                        {index + 1}
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-400">{formatCurrency(record.value)}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-xs md:text-sm truncate">{stock.name}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground">{stock.ticker}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-xs md:text-sm">{formatCurrency(value)}</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      <div className="border-t border-slate-700 pt-4">
+        <Link href="/manual" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+          <BookOpen className="h-4 w-4" />
+          <span className="text-sm">사용자 매뉴얼 보기</span>
+        </Link>
+      </div>
     </div>
   );
 }

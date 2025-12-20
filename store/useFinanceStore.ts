@@ -53,6 +53,8 @@ interface FinanceStore {
     importData: (data: string) => void; // Import JSON string
     exportData: () => string; // Return JSON string
     loadFromSupabase: (userId: string) => Promise<void>; // Load from Supabase
+    saveToSupabase: (userId: string) => Promise<boolean>; // Save to Supabase
+    resetToSampleData: () => void; // Reset to sample data (for logout)
 
     // History for Actual Performance tracking
     history: { date: string; value: number }[]; // YYYY-MM
@@ -105,6 +107,142 @@ const DEFAULT_SIM_SETTINGS: SimulatorSettings = {
     endYear: 2045,
 };
 
+const SAMPLE_PORTFOLIO: StockItem[] = [
+    {
+        id: 'sample-1',
+        name: 'JPMorgan Equity Premium Income ETF',
+        ticker: 'JEPI',
+        quantity: 50,
+        currentPrice: 58000,
+        dividendYield: 7.8,
+        dividendDay: 5,
+        sector: 'Covered Call',
+        monthlyDividends: [480000, 450000, 470000, 460000, 490000, 475000, 485000, 470000, 480000, 465000, 490000, 500000],
+        yearlyDividends: {
+            2020: [320000, 310000, 330000, 325000, 340000, 335000, 345000, 330000, 335000, 320000, 340000, 350000],
+            2021: [350000, 340000, 360000, 355000, 370000, 365000, 375000, 360000, 365000, 350000, 370000, 380000],
+            2022: [390000, 380000, 400000, 395000, 410000, 405000, 415000, 400000, 405000, 390000, 410000, 420000],
+            2023: [420000, 410000, 430000, 425000, 440000, 435000, 445000, 430000, 435000, 420000, 440000, 450000],
+            2024: [450000, 420000, 440000, 430000, 460000, 445000, 455000, 440000, 450000, 435000, 460000, 470000],
+            2025: [480000, 450000, 470000, 460000, 490000, 475000, 485000, 470000, 480000, 465000, 490000, 500000]
+        }
+    },
+    {
+        id: 'sample-2',
+        name: 'JPMorgan Nasdaq Equity Premium Income',
+        ticker: 'JEPQ',
+        quantity: 45,
+        currentPrice: 54000,
+        dividendYield: 9.2,
+        dividendDay: 8,
+        sector: 'Covered Call',
+        monthlyDividends: [510000, 490000, 520000, 500000, 530000, 515000, 525000, 505000, 520000, 495000, 530000, 540000],
+        yearlyDividends: {
+            2020: [280000, 270000, 290000, 280000, 300000, 290000, 300000, 285000, 290000, 275000, 295000, 305000],
+            2021: [350000, 340000, 360000, 350000, 370000, 360000, 370000, 355000, 365000, 345000, 370000, 380000],
+            2022: [420000, 410000, 430000, 420000, 440000, 430000, 440000, 425000, 435000, 415000, 440000, 450000],
+            2023: [450000, 440000, 460000, 450000, 470000, 460000, 470000, 455000, 465000, 445000, 470000, 480000],
+            2024: [480000, 460000, 490000, 470000, 500000, 485000, 495000, 475000, 490000, 465000, 500000, 510000],
+            2025: [510000, 490000, 520000, 500000, 530000, 515000, 525000, 505000, 520000, 495000, 530000, 540000]
+        }
+    },
+    {
+        id: 'sample-3',
+        name: 'Global X S&P 500 Covered Call ETF',
+        ticker: 'XYLD',
+        quantity: 60,
+        currentPrice: 48000,
+        dividendYield: 11.5,
+        dividendDay: 3,
+        sector: 'Covered Call',
+        monthlyDividends: [550000, 530000, 560000, 540000, 570000, 555000, 565000, 545000, 560000, 535000, 570000, 580000],
+        yearlyDividends: {
+            2020: [350000, 340000, 360000, 350000, 370000, 360000, 370000, 355000, 365000, 345000, 370000, 380000],
+            2021: [400000, 390000, 410000, 400000, 420000, 410000, 420000, 405000, 415000, 395000, 420000, 430000],
+            2022: [460000, 450000, 470000, 460000, 480000, 470000, 480000, 465000, 475000, 455000, 480000, 490000],
+            2023: [490000, 480000, 500000, 490000, 510000, 500000, 510000, 495000, 505000, 485000, 510000, 520000],
+            2024: [520000, 500000, 530000, 510000, 540000, 525000, 535000, 515000, 530000, 505000, 540000, 550000],
+            2025: [550000, 530000, 560000, 540000, 570000, 555000, 565000, 545000, 560000, 535000, 570000, 580000]
+        }
+    },
+    {
+        id: 'sample-4',
+        name: 'Global X Nasdaq 100 Covered Call ETF',
+        ticker: 'QYLD',
+        quantity: 55,
+        currentPrice: 45000,
+        dividendYield: 12.3,
+        dividendDay: 25,
+        sector: 'Covered Call',
+        monthlyDividends: [580000, 560000, 590000, 570000, 600000, 585000, 595000, 575000, 590000, 565000, 600000, 610000],
+        yearlyDividends: {
+            2020: [340000, 330000, 350000, 340000, 360000, 350000, 360000, 345000, 355000, 335000, 360000, 370000],
+            2021: [410000, 400000, 420000, 410000, 430000, 420000, 430000, 415000, 425000, 405000, 430000, 440000],
+            2022: [480000, 470000, 490000, 480000, 500000, 490000, 500000, 485000, 495000, 475000, 500000, 510000],
+            2023: [520000, 510000, 530000, 520000, 540000, 530000, 540000, 525000, 535000, 515000, 540000, 550000],
+            2024: [550000, 530000, 560000, 540000, 570000, 555000, 565000, 545000, 560000, 535000, 570000, 580000],
+            2025: [580000, 560000, 590000, 570000, 600000, 585000, 595000, 575000, 590000, 565000, 600000, 610000]
+        }
+    },
+    {
+        id: 'sample-5',
+        name: 'Amplify CWP Enhanced Dividend Income',
+        ticker: 'DIVO',
+        quantity: 40,
+        currentPrice: 42000,
+        dividendYield: 5.8,
+        dividendDay: 20,
+        sector: 'Dividend Growth',
+        monthlyDividends: [0, 0, 270000, 0, 0, 300000, 0, 0, 310000, 0, 0, 320000],
+        yearlyDividends: {
+            2020: [0, 0, 180000, 0, 0, 190000, 0, 0, 200000, 0, 0, 210000],
+            2021: [0, 0, 200000, 0, 0, 220000, 0, 0, 230000, 0, 0, 240000],
+            2022: [0, 0, 220000, 0, 0, 240000, 0, 0, 250000, 0, 0, 260000],
+            2023: [0, 0, 240000, 0, 0, 260000, 0, 0, 270000, 0, 0, 280000],
+            2024: [0, 0, 250000, 0, 0, 280000, 0, 0, 290000, 0, 0, 300000],
+            2025: [0, 0, 270000, 0, 0, 300000, 0, 0, 310000, 0, 0, 320000]
+        }
+    },
+    {
+        id: 'sample-6',
+        name: 'Schwab U.S. Dividend Equity ETF',
+        ticker: 'SCHD',
+        quantity: 35,
+        currentPrice: 85000,
+        dividendYield: 3.5,
+        dividendDay: 28,
+        sector: 'Dividend Aristocrats',
+        monthlyDividends: [0, 0, 370000, 0, 0, 400000, 0, 0, 410000, 0, 0, 440000],
+        yearlyDividends: {
+            2020: [0, 0, 220000, 0, 0, 240000, 0, 0, 250000, 0, 0, 270000],
+            2021: [0, 0, 260000, 0, 0, 280000, 0, 0, 290000, 0, 0, 310000],
+            2022: [0, 0, 300000, 0, 0, 320000, 0, 0, 330000, 0, 0, 360000],
+            2023: [0, 0, 330000, 0, 0, 360000, 0, 0, 370000, 0, 0, 400000],
+            2024: [0, 0, 350000, 0, 0, 380000, 0, 0, 390000, 0, 0, 420000],
+            2025: [0, 0, 370000, 0, 0, 400000, 0, 0, 410000, 0, 0, 440000]
+        }
+    },
+    {
+        id: 'sample-7',
+        name: 'Global X Russell 2000 Covered Call',
+        ticker: 'RYLD',
+        quantity: 65,
+        currentPrice: 40000,
+        dividendYield: 10.8,
+        dividendDay: 15,
+        sector: 'Covered Call',
+        monthlyDividends: [460000, 440000, 470000, 450000, 480000, 465000, 475000, 455000, 470000, 445000, 480000, 490000],
+        yearlyDividends: {
+            2020: [280000, 270000, 290000, 280000, 300000, 290000, 300000, 285000, 290000, 275000, 300000, 310000],
+            2021: [340000, 330000, 350000, 340000, 360000, 350000, 360000, 345000, 355000, 335000, 360000, 370000],
+            2022: [380000, 370000, 390000, 380000, 400000, 390000, 400000, 385000, 395000, 375000, 400000, 410000],
+            2023: [410000, 400000, 420000, 410000, 430000, 420000, 430000, 415000, 425000, 405000, 430000, 440000],
+            2024: [430000, 410000, 440000, 420000, 450000, 435000, 445000, 425000, 440000, 415000, 450000, 460000],
+            2025: [460000, 440000, 470000, 450000, 480000, 465000, 475000, 455000, 470000, 445000, 480000, 490000]
+        }
+    }
+];
+
 export const useFinanceStore = create<FinanceStore>()(
     persist(
         (set, get) => ({
@@ -118,134 +256,7 @@ export const useFinanceStore = create<FinanceStore>()(
                 return { history: [...state.history, { date, value }] };
             }),
 
-            portfolio: [
-                {
-                    id: 'sample-1',
-                    name: 'JPMorgan Equity Premium Income ETF',
-                    ticker: 'JEPI',
-                    quantity: 50,
-                    currentPrice: 58000,
-                    dividendYield: 7.8,
-                    dividendDay: 5,
-                    sector: 'Covered Call',
-                    monthlyDividends: [450000, 420000, 440000, 430000, 460000, 445000, 455000, 440000, 450000, 435000, 460000, 470000],
-                    yearlyDividends: {
-                        2020: [320000, 310000, 330000, 325000, 340000, 335000, 345000, 330000, 335000, 320000, 340000, 350000],
-                        2021: [350000, 340000, 360000, 355000, 370000, 365000, 375000, 360000, 365000, 350000, 370000, 380000],
-                        2022: [390000, 380000, 400000, 395000, 410000, 405000, 415000, 400000, 405000, 390000, 410000, 420000],
-                        2023: [420000, 410000, 430000, 425000, 440000, 435000, 445000, 430000, 435000, 420000, 440000, 450000],
-                        2024: [450000, 420000, 440000, 430000, 460000, 445000, 455000, 440000, 450000, 435000, 460000, 470000]
-                    }
-                },
-                {
-                    id: 'sample-2',
-                    name: 'JPMorgan Nasdaq Equity Premium Income',
-                    ticker: 'JEPQ',
-                    quantity: 45,
-                    currentPrice: 54000,
-                    dividendYield: 9.2,
-                    dividendDay: 8,
-                    sector: 'Covered Call',
-                    monthlyDividends: [480000, 460000, 490000, 470000, 500000, 485000, 495000, 475000, 490000, 465000, 500000, 510000],
-                    yearlyDividends: {
-                        2020: [280000, 270000, 290000, 280000, 300000, 290000, 300000, 285000, 290000, 275000, 295000, 305000],
-                        2021: [350000, 340000, 360000, 350000, 370000, 360000, 370000, 355000, 365000, 345000, 370000, 380000],
-                        2022: [420000, 410000, 430000, 420000, 440000, 430000, 440000, 425000, 435000, 415000, 440000, 450000],
-                        2023: [450000, 440000, 460000, 450000, 470000, 460000, 470000, 455000, 465000, 445000, 470000, 480000],
-                        2024: [480000, 460000, 490000, 470000, 500000, 485000, 495000, 475000, 490000, 465000, 500000, 510000]
-                    }
-                },
-                {
-                    id: 'sample-3',
-                    name: 'Global X S&P 500 Covered Call ETF',
-                    ticker: 'XYLD',
-                    quantity: 60,
-                    currentPrice: 48000,
-                    dividendYield: 11.5,
-                    dividendDay: 3,
-                    sector: 'Covered Call',
-                    monthlyDividends: [520000, 500000, 530000, 510000, 540000, 525000, 535000, 515000, 530000, 505000, 540000, 550000],
-                    yearlyDividends: {
-                        2020: [350000, 340000, 360000, 350000, 370000, 360000, 370000, 355000, 365000, 345000, 370000, 380000],
-                        2021: [400000, 390000, 410000, 400000, 420000, 410000, 420000, 405000, 415000, 395000, 420000, 430000],
-                        2022: [460000, 450000, 470000, 460000, 480000, 470000, 480000, 465000, 475000, 455000, 480000, 490000],
-                        2023: [490000, 480000, 500000, 490000, 510000, 500000, 510000, 495000, 505000, 485000, 510000, 520000],
-                        2024: [520000, 500000, 530000, 510000, 540000, 525000, 535000, 515000, 530000, 505000, 540000, 550000]
-                    }
-                },
-                {
-                    id: 'sample-4',
-                    name: 'Global X Nasdaq 100 Covered Call ETF',
-                    ticker: 'QYLD',
-                    quantity: 55,
-                    currentPrice: 45000,
-                    dividendYield: 12.3,
-                    dividendDay: 25,
-                    sector: 'Covered Call',
-                    monthlyDividends: [550000, 530000, 560000, 540000, 570000, 555000, 565000, 545000, 560000, 535000, 570000, 580000],
-                    yearlyDividends: {
-                        2020: [340000, 330000, 350000, 340000, 360000, 350000, 360000, 345000, 355000, 335000, 360000, 370000],
-                        2021: [410000, 400000, 420000, 410000, 430000, 420000, 430000, 415000, 425000, 405000, 430000, 440000],
-                        2022: [480000, 470000, 490000, 480000, 500000, 490000, 500000, 485000, 495000, 475000, 500000, 510000],
-                        2023: [520000, 510000, 530000, 520000, 540000, 530000, 540000, 525000, 535000, 515000, 540000, 550000],
-                        2024: [550000, 530000, 560000, 540000, 570000, 555000, 565000, 545000, 560000, 535000, 570000, 580000]
-                    }
-                },
-                {
-                    id: 'sample-5',
-                    name: 'Amplify CWP Enhanced Dividend Income',
-                    ticker: 'DIVO',
-                    quantity: 40,
-                    currentPrice: 42000,
-                    dividendYield: 5.8,
-                    dividendDay: 20,
-                    sector: 'Dividend Growth',
-                    monthlyDividends: [0, 0, 250000, 0, 0, 280000, 0, 0, 290000, 0, 0, 300000],
-                    yearlyDividends: {
-                        2020: [0, 0, 180000, 0, 0, 190000, 0, 0, 200000, 0, 0, 210000],
-                        2021: [0, 0, 200000, 0, 0, 220000, 0, 0, 230000, 0, 0, 240000],
-                        2022: [0, 0, 220000, 0, 0, 240000, 0, 0, 250000, 0, 0, 260000],
-                        2023: [0, 0, 240000, 0, 0, 260000, 0, 0, 270000, 0, 0, 280000],
-                        2024: [0, 0, 250000, 0, 0, 280000, 0, 0, 290000, 0, 0, 300000]
-                    }
-                },
-                {
-                    id: 'sample-6',
-                    name: 'Schwab U.S. Dividend Equity ETF',
-                    ticker: 'SCHD',
-                    quantity: 35,
-                    currentPrice: 85000,
-                    dividendYield: 3.5,
-                    dividendDay: 28,
-                    sector: 'Dividend Aristocrats',
-                    monthlyDividends: [0, 0, 350000, 0, 0, 380000, 0, 0, 390000, 0, 0, 420000],
-                    yearlyDividends: {
-                        2020: [0, 0, 220000, 0, 0, 240000, 0, 0, 250000, 0, 0, 270000],
-                        2021: [0, 0, 260000, 0, 0, 280000, 0, 0, 290000, 0, 0, 310000],
-                        2022: [0, 0, 300000, 0, 0, 320000, 0, 0, 330000, 0, 0, 360000],
-                        2023: [0, 0, 330000, 0, 0, 360000, 0, 0, 370000, 0, 0, 400000],
-                        2024: [0, 0, 350000, 0, 0, 380000, 0, 0, 390000, 0, 0, 420000]
-                    }
-                },
-                {
-                    id: 'sample-7',
-                    name: 'Global X Russell 2000 Covered Call',
-                    ticker: 'RYLD',
-                    quantity: 65,
-                    currentPrice: 40000,
-                    dividendYield: 10.8,
-                    dividendDay: 15,
-                    sector: 'Covered Call',
-                    monthlyDividends: [430000, 410000, 440000, 420000, 450000, 435000, 445000, 425000, 440000, 415000, 450000, 460000],
-                    yearlyDividends: {
-                        2020: [280000, 270000, 290000, 280000, 300000, 290000, 300000, 285000, 290000, 275000, 300000, 310000],
-                        2021: [340000, 330000, 350000, 340000, 360000, 350000, 360000, 345000, 355000, 335000, 360000, 370000],
-                        2022: [380000, 370000, 390000, 380000, 400000, 390000, 400000, 385000, 395000, 375000, 400000, 410000],
-                        2023: [410000, 400000, 420000, 410000, 430000, 420000, 430000, 415000, 425000, 405000, 430000, 440000],
-                        2024: [430000, 410000, 440000, 420000, 450000, 435000, 445000, 425000, 440000, 415000, 450000, 460000]
-                    }
-                }
-            ],
+            portfolio: SAMPLE_PORTFOLIO,
 
             addItem: (item) => set((state) => ({ portfolio: [...state.portfolio, item] })),
 
@@ -379,10 +390,105 @@ export const useFinanceStore = create<FinanceStore>()(
                 } catch (error) {
                     console.error('Error in loadFromSupabase:', error);
                 }
+            },
+
+            saveToSupabase: async (userId: string) => {
+                try {
+                    const { supabase } = await import('@/lib/supabase');
+                    const state = get();
+                    
+                    // 1. Upsert portfolio items
+                    for (const item of state.portfolio) {
+                        const portfolioData = {
+                            id: item.id,
+                            user_id: userId,
+                            name: item.name,
+                            ticker: item.ticker,
+                            quantity: item.quantity,
+                            current_price: item.currentPrice,
+                            dividend_yield: item.dividendYield,
+                            dividend_day: item.dividendDay || null,
+                            sector: item.sector || null,
+                        };
+                        
+                        const { error: portfolioError } = await supabase
+                            .from('portfolio_items')
+                            .upsert(portfolioData, { onConflict: 'id' });
+                        
+                        if (portfolioError) {
+                            console.error('Error saving portfolio item:', portfolioError);
+                            continue;
+                        }
+                        
+                        // 2. Upsert yearly dividends for this item
+                        if (item.yearlyDividends) {
+                            for (const [yearStr, months] of Object.entries(item.yearlyDividends)) {
+                                const year = parseInt(yearStr);
+                                const dividendData = {
+                                    user_id: userId,
+                                    portfolio_item_id: item.id,
+                                    year: year,
+                                    month_1: months[0] || 0,
+                                    month_2: months[1] || 0,
+                                    month_3: months[2] || 0,
+                                    month_4: months[3] || 0,
+                                    month_5: months[4] || 0,
+                                    month_6: months[5] || 0,
+                                    month_7: months[6] || 0,
+                                    month_8: months[7] || 0,
+                                    month_9: months[8] || 0,
+                                    month_10: months[9] || 0,
+                                    month_11: months[10] || 0,
+                                    month_12: months[11] || 0,
+                                };
+                                
+                                // Check if record exists
+                                const { data: existing } = await supabase
+                                    .from('yearly_dividends')
+                                    .select('id')
+                                    .eq('portfolio_item_id', item.id)
+                                    .eq('year', year)
+                                    .single();
+                                
+                                if (existing) {
+                                    // Update existing record
+                                    const { error } = await supabase
+                                        .from('yearly_dividends')
+                                        .update(dividendData)
+                                        .eq('id', existing.id);
+                                    
+                                    if (error) console.error('Error updating yearly dividends:', error);
+                                } else {
+                                    // Insert new record
+                                    const { error } = await supabase
+                                        .from('yearly_dividends')
+                                        .insert(dividendData);
+                                    
+                                    if (error) console.error('Error inserting yearly dividends:', error);
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log('✅ Saved to Supabase successfully');
+                    return true;
+                } catch (error) {
+                    console.error('Error in saveToSupabase:', error);
+                    return false;
+                }
+            },
+
+            resetToSampleData: () => {
+                set({
+                    portfolio: SAMPLE_PORTFOLIO,
+                    simSettings: DEFAULT_SIM_SETTINGS,
+                    history: generateSampleHistory()
+                });
+                console.log('✅ Reset to sample data');
             }
         }),
         {
-            name: 'finance-storage-v6', // v6: Real ETF samples (JEPI, JEPQ, XYLD, QYLD, DIVO, SCHD, RYLD) with 2020-2024 data
+            name: 'finance-storage-v7', // v7: Added 2025 data and resetToSampleData function
         }
     )
 );

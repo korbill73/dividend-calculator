@@ -83,6 +83,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
+            
+            // Reset to sample data on logout
+            import('@/store/useFinanceStore').then(({ useFinanceStore }) => {
+                const resetToSampleData = useFinanceStore.getState().resetToSampleData;
+                resetToSampleData();
+            });
+            
             router.push('/login');
         } catch (error) {
             console.error('Error signing out:', error);
