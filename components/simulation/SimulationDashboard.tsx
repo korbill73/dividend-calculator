@@ -66,15 +66,18 @@ const AccountCell = ({
     };
 
     return (
-        <Input
-            value={value}
-            onChange={(e) => !disabled && setValue(e.target.value)}
-            onBlur={onBlur}
-            onKeyDown={onKeyDown}
-            className={`h-8 w-20 text-right bg-slate-800/50 border-slate-600 hover:border-slate-400 focus:border-yellow-500 focus:bg-slate-800 text-xs ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
-            placeholder={disabled ? "-" : "만원"}
-            disabled={disabled}
-        />
+        <div className="flex items-center justify-end gap-1">
+            <Input
+                value={value}
+                onChange={(e) => !disabled && setValue(e.target.value)}
+                onBlur={onBlur}
+                onKeyDown={onKeyDown}
+                className={`h-8 w-16 text-right bg-slate-900/80 border-slate-600/50 hover:border-cyan-500/50 focus:border-cyan-400 focus:bg-slate-800 text-sm font-medium rounded-md ${disabled ? 'cursor-not-allowed opacity-50' : 'text-white'}`}
+                placeholder={disabled ? "-" : ""}
+                disabled={disabled}
+            />
+            <span className="text-xs text-slate-400 min-w-[24px]">만원</span>
+        </div>
     )
 }
 
@@ -165,43 +168,65 @@ export function SimulationDashboard() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-                        <div className="col-span-2 md:col-span-1 bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/30">
-                            <p className="text-[10px] md:text-xs text-muted-foreground mb-1">현재 실적</p>
-                            <p className="text-base md:text-xl font-bold text-yellow-400">
+                    {/* Mobile: 3 cards in one row */}
+                    <div className="grid grid-cols-3 gap-2 md:hidden">
+                        <div className="bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/30">
+                            <p className="text-[8px] text-muted-foreground mb-0.5">현재실적</p>
+                            <p className="text-[11px] font-bold text-yellow-400 leading-tight">
+                                {currentYearActual ? `${formatMan(currentYearActual.value)}만` : '-'}
+                            </p>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-lg p-2 border border-blue-500/30">
+                            <p className="text-[8px] text-muted-foreground mb-0.5">중립(목표)</p>
+                            <p className="text-[11px] font-bold text-blue-400 leading-tight">
+                                {yearEndData ? `${formatMan(yearEndData.moderate)}만` : '-'}
+                            </p>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-lg p-2">
+                            <p className="text-[8px] text-muted-foreground mb-0.5">목표대비</p>
+                            <p className={`text-[11px] font-bold leading-tight ${currentYearActual && yearEndData && currentYearActual.value >= yearEndData.moderate ? 'text-green-400' : 'text-orange-400'}`}>
+                                {currentYearActual && yearEndData ? `${currentYearActual.value >= yearEndData.moderate ? '+' : ''}${formatMan(currentYearActual.value - yearEndData.moderate)}만` : '-'}
+                            </p>
+                        </div>
+                    </div>
+                    {/* Desktop: 5 cards */}
+                    <div className="hidden md:grid md:grid-cols-5 gap-4">
+                        <div className="bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/30">
+                            <p className="text-xs text-muted-foreground mb-1">현재 실적</p>
+                            <p className="text-xl font-bold text-yellow-400">
                                 {currentYearActual ? `${formatMan(currentYearActual.value)}만원` : '-'}
                             </p>
                             {achievementRate && (
-                                <p className={`text-[10px] md:text-xs mt-1 font-semibold ${achievementRate >= 100 ? 'text-green-400' : 'text-orange-400'}`}>
+                                <p className={`text-xs mt-1 font-semibold ${achievementRate >= 100 ? 'text-green-400' : 'text-orange-400'}`}>
                                     달성률 {achievementRate.toFixed(1)}%
                                 </p>
                             )}
                         </div>
                         <div className="bg-slate-800/50 rounded-lg p-3">
-                            <p className="text-[10px] md:text-xs text-muted-foreground mb-1">보수적</p>
-                            <p className="text-sm md:text-lg font-bold text-red-400">
+                            <p className="text-xs text-muted-foreground mb-1">보수적</p>
+                            <p className="text-lg font-bold text-red-400">
                                 {yearEndData ? `${formatMan(yearEndData.conservative)}만원` : '-'}
                             </p>
-                            <p className="text-[9px] md:text-xs text-muted-foreground">{currentYear}년 12월</p>
+                            <p className="text-xs text-muted-foreground">{currentYear}년 12월</p>
                         </div>
                         <div className="bg-slate-800/50 rounded-lg p-3 border border-blue-500/30">
-                            <p className="text-[10px] md:text-xs text-muted-foreground mb-1">중립적 (목표)</p>
-                            <p className="text-sm md:text-lg font-bold text-blue-400">
+                            <p className="text-xs text-muted-foreground mb-1">중립적 (목표)</p>
+                            <p className="text-lg font-bold text-blue-400">
                                 {yearEndData ? `${formatMan(yearEndData.moderate)}만원` : '-'}
                             </p>
-                            <p className="text-[9px] md:text-xs text-muted-foreground">{currentYear}년 12월</p>
+                            <p className="text-xs text-muted-foreground">{currentYear}년 12월</p>
                         </div>
                         <div className="bg-slate-800/50 rounded-lg p-3">
-                            <p className="text-[10px] md:text-xs text-muted-foreground mb-1">공격적</p>
-                            <p className="text-sm md:text-lg font-bold text-green-400">
+                            <p className="text-xs text-muted-foreground mb-1">공격적</p>
+                            <p className="text-lg font-bold text-green-400">
                                 {yearEndData ? `${formatMan(yearEndData.aggressive)}만원` : '-'}
                             </p>
-                            <p className="text-[9px] md:text-xs text-muted-foreground">{currentYear}년 12월</p>
+                            <p className="text-xs text-muted-foreground">{currentYear}년 12월</p>
                         </div>
                         {currentYearActual && yearEndData && (
-                            <div className="col-span-2 md:col-span-1 bg-slate-800/50 rounded-lg p-3">
-                                <p className="text-[10px] md:text-xs text-muted-foreground mb-1">목표 대비</p>
-                                <p className={`text-sm md:text-lg font-bold ${currentYearActual.value >= yearEndData.moderate ? 'text-green-400' : 'text-orange-400'}`}>
+                            <div className="bg-slate-800/50 rounded-lg p-3">
+                                <p className="text-xs text-muted-foreground mb-1">목표 대비</p>
+                                <p className={`text-lg font-bold ${currentYearActual.value >= yearEndData.moderate ? 'text-green-400' : 'text-orange-400'}`}>
                                     {currentYearActual.value >= yearEndData.moderate ? '+' : ''}{formatMan(currentYearActual.value - yearEndData.moderate)}만원
                                 </p>
                             </div>

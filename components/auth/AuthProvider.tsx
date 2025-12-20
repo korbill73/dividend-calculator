@@ -93,13 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Sign out from Supabase (use 'local' scope for better mobile support)
             await supabase.auth.signOut({ scope: 'local' });
             
-            router.push('/login');
+            router.push('/');
         } catch (error) {
             console.error('Error signing out:', error);
-            // Still navigate to login even if there's an error
+            // Still navigate to dashboard even if there's an error
             setUser(null);
             setSession(null);
-            router.push('/login');
+            router.push('/');
         }
     };
 

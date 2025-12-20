@@ -13,6 +13,7 @@ import {
     LogOut,
     User,
     BookOpen,
+    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -63,12 +64,26 @@ export function Sidebar() {
     return (
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex-col">
             <div className="h-full flex flex-col">
-                <Link href="/" className="block p-6 border-b border-border hover:bg-accent/30 transition-colors cursor-pointer">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
-                        FinDash (핀대시)
-                    </h1>
-                    <p className="text-xs text-slate-400 mt-1">
-                        Personal Asset Manager
+                <Link href="/" className="block p-6 border-b border-cyan-500/20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:shadow-cyan-500/50 transition-all">
+                                <Sparkles className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-300 bg-clip-text text-transparent tracking-tight">
+                                FinDash
+                            </h1>
+                            <p className="text-[10px] text-cyan-400/80 font-medium -mt-0.5">
+                                핀대시
+                            </p>
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Smart Asset Manager
                     </p>
                 </Link>
 
