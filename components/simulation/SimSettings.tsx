@@ -54,170 +54,132 @@ export function SimSettings() {
             </CardHeader>
             <CardContent className="space-y-4 md:space-y-6 p-3 pt-0 md:p-6 md:pt-0">
 
-                {/* Save Button */}
-                {user && (
-                    <Button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold"
-                    >
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                저장 중...
-                            </>
-                        ) : saveSuccess ? (
-                            <>
-                                <Check className="h-4 w-4 mr-2" />
-                                저장 완료!
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-4 w-4 mr-2" />
-                                설정 저장
-                            </>
-                        )}
-                    </Button>
-                )}
-
-                {/* Period Settings */}
-                <div className="space-y-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                    <h3 className="text-sm font-medium">Simulation Period (시뮬레이션 기간)</h3>
-                    <div className="grid grid-cols-2 gap-3">
+                {/* Period Settings - 4 items in one row */}
+                <div className="space-y-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                    <h3 className="text-sm font-medium">시뮬레이션 기간</h3>
+                    <div className="grid grid-cols-4 gap-2">
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Birth Year (출생년도)</Label>
+                            <Label className="text-[10px] text-muted-foreground">출생년도</Label>
                             <Input
                                 type="number"
                                 value={simSettings.birthYear ?? ''}
                                 onChange={(e) => updateSimSettings({ birthYear: e.target.value ? Number(e.target.value) : undefined })}
-                                className="text-right"
-                                placeholder="예: 1985"
+                                className="text-right h-8 text-sm"
+                                placeholder="1985"
                                 disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">End Year (종료년도)</Label>
+                            <Label className="text-[10px] text-muted-foreground">시작년도</Label>
                             <Input
                                 type="number"
-                                value={simSettings.endYear ?? 2050}
-                                onChange={(e) => updateSimSettings({ endYear: Number(e.target.value) })}
-                                className="text-right"
-                                disabled={isReadOnly}
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">시작년도</Label>
-                            <Input
-                                type="text"
                                 inputMode="numeric"
-                                pattern="[0-9]*"
                                 value={localStartYear}
-                                onChange={(e) => setLocalStartYear(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '');
+                                    setLocalStartYear(val);
+                                }}
                                 onBlur={() => {
                                     const num = parseInt(localStartYear, 10);
-                                    if (!isNaN(num)) {
+                                    if (!isNaN(num) && num > 1900 && num < 2200) {
                                         updateSimSettings({ startYear: num });
                                     } else {
                                         setLocalStartYear(String(simSettings.startYear ?? 2025));
                                     }
                                 }}
-                                className="text-right"
+                                className="text-right h-8 text-sm"
                                 disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">시작월</Label>
+                            <Label className="text-[10px] text-muted-foreground">시작월</Label>
                             <Input
-                                type="text"
+                                type="number"
                                 inputMode="numeric"
-                                pattern="[0-9]*"
+                                min={1}
+                                max={12}
                                 value={localStartMonth}
-                                onChange={(e) => setLocalStartMonth(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '');
+                                    setLocalStartMonth(val);
+                                }}
                                 onBlur={() => {
                                     const num = parseInt(localStartMonth, 10);
-                                    if (!isNaN(num)) {
-                                        updateSimSettings({ startMonth: Math.min(12, Math.max(1, num)) });
+                                    if (!isNaN(num) && num >= 1 && num <= 12) {
+                                        updateSimSettings({ startMonth: num });
                                     } else {
                                         setLocalStartMonth(String(simSettings.startMonth ?? 1));
                                     }
                                 }}
-                                className="text-right"
+                                className="text-right h-8 text-sm"
                                 placeholder="1-12"
                                 disabled={isReadOnly}
                             />
                         </div>
+                        <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">종료년도</Label>
+                            <Input
+                                type="number"
+                                value={simSettings.endYear ?? 2050}
+                                onChange={(e) => updateSimSettings({ endYear: Number(e.target.value) })}
+                                className="text-right h-8 text-sm"
+                                disabled={isReadOnly}
+                            />
+                        </div>
                     </div>
                 </div>
 
-                {/* Scenarios - 2행 3열 레이아웃 */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Target Annual Returns (%)<br />
-                        <span className="text-xs text-muted-foreground">(목표 수익률)</span>
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                        {/* 첫 번째 행 */}
+                {/* Scenarios - Korean only */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium">목표 수익률 (%)</h3>
+                    <div className="grid grid-cols-3 gap-2">
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground leading-relaxed">
-                                Conservative<br />
-                                <span className="text-[10px]">(보수적)</span>
-                            </Label>
+                            <Label className="text-[10px] text-muted-foreground">보수적</Label>
                             <Input
                                 type="number"
                                 value={simSettings.scenarios.conservative}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, conservative: Number(e.target.value) } })}
-                                className="text-right"
+                                className="text-right h-8 text-sm"
                                 disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground leading-relaxed">
-                                Moderate<br />
-                                <span className="text-[10px]">(중립적)</span>
-                            </Label>
+                            <Label className="text-[10px] text-muted-foreground">중립적</Label>
                             <Input
                                 type="number"
                                 value={simSettings.scenarios.moderate}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, moderate: Number(e.target.value) } })}
-                                className="text-right"
+                                className="text-right h-8 text-sm"
                                 disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground leading-relaxed">
-                                Aggressive<br />
-                                <span className="text-[10px]">(공격적)</span>
-                            </Label>
+                            <Label className="text-[10px] text-muted-foreground">공격적</Label>
                             <Input
                                 type="number"
                                 value={simSettings.scenarios.aggressive}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, aggressive: Number(e.target.value) } })}
-                                className="text-right"
+                                className="text-right h-8 text-sm"
                                 disabled={isReadOnly}
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Monthly Contribution (in 만원) */}
-                <div className="space-y-3">
-                    <Label>Monthly Contribution (월 추가 불입금)</Label>
+                {/* Monthly Contribution - Korean only, one row */}
+                <div className="space-y-2">
+                    <Label className="text-sm font-medium">월 추가 불입금</Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
                             value={simSettings.monthlyContribution / 10000}
                             onChange={(e) => updateSimSettings({ monthlyContribution: Number(e.target.value) * 10000 })}
-                            className="text-right"
+                            className="text-right h-8 text-sm"
                             placeholder="만원 단위"
                             disabled={isReadOnly}
                         />
                         <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                        Current: {new Intl.NumberFormat('ko-KR').format(simSettings.monthlyContribution)}원
-                    </p>
                 </div>
 
                 {/* Accounts Initial Balances (in 만원) */}
@@ -277,12 +239,38 @@ export function SimSettings() {
                         {/* 총합 표시 */}
                         <div className="pt-2 border-t border-slate-700">
                             <div className="flex justify-between items-center text-sm font-medium">
-                                <span>Total (총합)</span>
+                                <span>총합</span>
                                 <span className="text-blue-400">
                                     {new Intl.NumberFormat('ko-KR').format(totalBalance)}원
                                 </span>
                             </div>
                         </div>
+
+                        {/* Save Button - at bottom of accounts */}
+                        {user && (
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        저장 중...
+                                    </>
+                                ) : saveSuccess ? (
+                                    <>
+                                        <Check className="h-4 w-4 mr-2" />
+                                        저장 완료!
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4 mr-2" />
+                                        설정 저장
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 </div>
 

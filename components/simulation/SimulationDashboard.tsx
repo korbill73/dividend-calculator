@@ -335,7 +335,7 @@ export function SimulationDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {data.map((row) => (
+                            {[...data].reverse().map((row) => (
                                 <TableRow key={row.date}>
                                     <TableCell className="font-medium text-muted-foreground whitespace-nowrap">{row.monthLabel}</TableCell>
                                     {simSettings.accounts.map((acc, idx) => (

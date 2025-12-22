@@ -54,6 +54,23 @@ export function DividendPage() {
         return { totalAsset, annualDividend, yieldRate, monthlyData };
     }, [portfolio, selectedYear]);
 
+    const dividendRankingData = useMemo(() => {
+        return portfolio
+            .map(item => {
+                const yearData = item.yearlyDividends?.[selectedYear] || Array(12).fill(0);
+                const totalDividend = yearData.reduce((a, b) => a + b, 0);
+                return {
+                    name: item.name.length > 8 ? item.name.slice(0, 8) + '...' : item.name,
+                    fullName: item.name,
+                    value: totalDividend,
+                    displayValue: Math.round(totalDividend / 10000),
+                };
+            })
+            .filter(item => item.value > 0)
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 10);
+    }, [portfolio, selectedYear]);
+
     // Format currency
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(val);
@@ -163,6 +180,48 @@ export function DividendPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* 종목별 배당 랭킹 */}
+                {dividendRankingData.length > 0 && (
+                    <Card>
+                        <CardHeader className="p-3 md:p-6">
+                            <CardTitle className="text-base md:text-lg">{selectedYear}년 종목별 배당 랭킹</CardTitle>
+                            <CardDescription className="text-xs md:text-sm">종목별 배당금 순위 (단위: 만원)</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-2 md:p-6 pt-0">
+                            <div className="h-[200px] md:h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={dividendRankingData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                                        <defs>
+                                            <linearGradient id="dividendRankingGradient" x1="0" y1="0" x2="1" y2="0">
+                                                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
+                                                <stop offset="100%" stopColor="#10b981" stopOpacity={1} />
+                                            </linearGradient>
+                                        </defs>
+                                        <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} width={70} />
+                                        <Tooltip 
+                                            cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="text-sm bg-slate-900/95 border border-green-500/20 rounded-lg px-3 py-2 shadow-lg">
+                                                            <p className="text-slate-200 font-semibold">{data.fullName}</p>
+                                                            <p className="text-green-400 font-bold">{formatCurrency(data.value)}</p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Bar dataKey="displayValue" fill="url(#dividendRankingGradient)" radius={[0, 8, 8, 0]} maxBarSize={30} animationDuration={800} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );

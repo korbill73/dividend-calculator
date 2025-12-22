@@ -70,6 +70,23 @@ export default function Home() {
     return months;
   }, [portfolio]);
 
+  const dividendRankingData = useMemo(() => {
+    return portfolio
+      .map(item => {
+        const yearData = item.yearlyDividends?.[currentYear] || Array(12).fill(0);
+        const totalDividend = yearData.reduce((a, b) => a + b, 0);
+        return {
+          name: item.name.length > 8 ? item.name.slice(0, 8) + '...' : item.name,
+          fullName: item.name,
+          value: totalDividend,
+          displayValue: Math.round(totalDividend / 10000),
+        };
+      })
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [portfolio, currentYear]);
+
   const simulationProjections = useMemo(() => {
     const { conservative, moderate, aggressive } = simSettings.scenarios;
     const calculate = (rate: number, years: number) => {
@@ -199,42 +216,6 @@ export default function Home() {
     return null;
   };
 
-  const stats = [
-    {
-      title: "Total Balance (총 자산 현황)",
-      value: formatCurrency(totalCurrentBalance),
-      subtitle: "시뮬레이션 기준",
-      icon: Wallet,
-      color: "from-amber-500/20 to-yellow-500/20",
-      borderColor: "border-amber-500",
-      iconColor: "text-amber-400",
-      link: "/simulation",
-      linkText: "자산 관리"
-    },
-    {
-      title: "올해 받은 배당",
-      value: formatCurrency(annualDividend),
-      subtitle: `${currentYear}년 배당금`,
-      icon: DollarSign,
-      color: "from-green-500/20 to-emerald-500/20",
-      borderColor: "border-green-500",
-      iconColor: "text-green-400",
-      link: "/dividends/history",
-      linkText: "배당 통계"
-    },
-    {
-      title: "누적 배당",
-      value: formatCurrency(cumulativeDividend),
-      subtitle: "전체 기간 합계",
-      icon: TrendingUp,
-      color: "from-cyan-500/20 to-blue-500/20",
-      borderColor: "border-cyan-500",
-      iconColor: "text-cyan-400",
-      link: "/dividends",
-      linkText: "상세 보기"
-    },
-  ];
-
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
       {/* Premium Header Card */}
@@ -291,49 +272,29 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
-        {stats.map((stat, index) => (
-          <Card
-            key={index}
-            className={`relative overflow-hidden bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5 hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm`}
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${stat.color} opacity-30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`} />
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.02] to-transparent" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-2 md:p-6 relative">
-              <CardTitle className="text-[9px] md:text-sm font-medium leading-tight text-slate-300">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-1.5 md:p-2 rounded-lg bg-gradient-to-br ${stat.color} border border-slate-600/30`}>
-                <stat.icon className={`h-3 w-3 md:h-5 md:w-5 ${stat.iconColor} flex-shrink-0`} />
-              </div>
-            </CardHeader>
-            <CardContent className="p-2 pt-0 md:p-6 md:pt-0 relative">
-              <div className={`text-sm md:text-2xl font-bold ${stat.iconColor} drop-shadow-sm`}>
-                {stat.value}
-              </div>
-              <p className="text-[9px] md:text-xs text-slate-500 mt-0.5">
-                {stat.subtitle}
-              </p>
-              <Button asChild variant="link" className={`px-0 ${stat.iconColor} h-auto py-0.5 md:py-2 hover:brightness-125`}>
-                <Link href={stat.link} className="flex items-center gap-1 text-[9px] md:text-xs mt-0.5 md:mt-2">
-                  {stat.linkText} <ArrowRight className="h-2 w-2 md:h-3 md:w-3" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
         <CardHeader className="p-3 md:p-6">
-          <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+              </div>
+              <span className="text-slate-200">최근 1년 월별 배당금</span>
+              <span className="text-xs text-slate-500 font-normal">(단위: 만원)</span>
+            </CardTitle>
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-green-400" />
+                <span className="text-[10px] md:text-xs text-slate-400">올해</span>
+                <span className="text-xs md:text-sm font-bold text-green-400">{formatCurrency(annualDividend)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-cyan-400" />
+                <span className="text-[10px] md:text-xs text-slate-400">누적</span>
+                <span className="text-xs md:text-sm font-bold text-cyan-400">{formatCurrency(cumulativeDividend)}</span>
+              </div>
             </div>
-            <span className="text-slate-200">최근 1년 월별 배당금</span>
-            <span className="text-xs text-slate-500 font-normal">(단위: 만원)</span>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
           <div className="h-[180px] md:h-[250px]">
@@ -354,6 +315,53 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 종목별 배당 랭킹 */}
+      {dividendRankingData.length > 0 && (
+        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <PieChart className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+              </div>
+              <span className="text-slate-200">{currentYear}년 종목별 배당 랭킹</span>
+              <span className="text-xs text-slate-500 font-normal">(단위: 만원)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
+            <div className="h-[200px] md:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dividendRankingData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                  <defs>
+                    <linearGradient id="rankingBarGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} width={70} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="text-sm bg-slate-900/95 border border-green-500/20 rounded-lg px-3 py-2 shadow-lg">
+                            <p className="text-slate-200 font-semibold">{data.fullName}</p>
+                            <p className="text-green-400 font-bold">{formatCurrency(data.value)}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="displayValue" fill="url(#rankingBarGradient)" radius={[0, 8, 8, 0]} maxBarSize={30} animationDuration={800} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 계좌별 잔고 표시 */}
       <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-amber-500/10 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
