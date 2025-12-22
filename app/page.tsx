@@ -76,7 +76,7 @@ export default function Home() {
         const yearData = item.yearlyDividends?.[currentYear] || Array(12).fill(0);
         const totalDividend = yearData.reduce((a, b) => a + b, 0);
         return {
-          name: item.name.length > 8 ? item.name.slice(0, 8) + '...' : item.name,
+          name: item.name,
           fullName: item.name,
           value: totalDividend,
           displayValue: Math.round(totalDividend / 10000),
@@ -331,15 +331,15 @@ export default function Home() {
           <CardContent className="p-2 md:p-6 pt-0">
             <div className="h-[200px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dividendRankingData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                <BarChart data={dividendRankingData} margin={{ left: 0, right: 0, bottom: 40 }}>
                   <defs>
-                    <linearGradient id="rankingBarGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={1} />
+                    <linearGradient id="rankingBarGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.8} />
                     </linearGradient>
                   </defs>
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} width={70} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval={0} />
+                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                   <Tooltip 
                     cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
                     content={({ active, payload }) => {
@@ -355,7 +355,7 @@ export default function Home() {
                       return null;
                     }}
                   />
-                  <Bar dataKey="displayValue" fill="url(#rankingBarGradient)" radius={[0, 8, 8, 0]} maxBarSize={30} animationDuration={800} />
+                  <Bar dataKey="displayValue" fill="url(#rankingBarGradient)" radius={[8, 8, 0, 0]} maxBarSize={50} animationDuration={800} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

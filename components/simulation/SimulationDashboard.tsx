@@ -86,6 +86,8 @@ export function SimulationDashboard() {
     const startBalance = simSettings.accounts.reduce((acc, a) => acc + a.balance, 0);
     const isReadOnly = !user;
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentDateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
     const data = useMemo(() => {
         return generateSimulationData(
@@ -317,6 +319,35 @@ export function SimulationDashboard() {
                         )}
                     </div>
                 </CardHeader>
+                {/* Current month input row - sticky at top */}
+                {(() => {
+                    const currentRow = data.find(d => d.date === currentDateString);
+                    if (!currentRow) return null;
+                    return (
+                        <div className="sticky top-0 z-20 bg-orange-500/20 border-b-2 border-orange-500/50 p-2">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <span className="font-bold text-orange-400 whitespace-nowrap text-sm">
+                                    📌 {currentRow.monthLabel} 입력
+                                </span>
+                                {simSettings.accounts.map((acc, idx) => (
+                                    <div key={idx} className="flex items-center gap-1">
+                                        <span className="text-yellow-500 text-xs font-medium">{acc.name}:</span>
+                                        <AccountCell
+                                            date={currentRow.date}
+                                            accountName={acc.name}
+                                            accountValue={currentRow.accountValues?.[acc.name]}
+                                            onUpdate={updateAccountHistoryPoint}
+                                            disabled={isReadOnly}
+                                        />
+                                    </div>
+                                ))}
+                                <span className="text-cyan-400 font-bold text-sm">
+                                    합계: {currentRow.actual ? formatMan(currentRow.actual) : '-'}만원
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })()}
                 <div className="flex-1 overflow-auto p-0">
                     <Table>
                         <TableHeader className="sticky top-0 bg-card z-10">
@@ -335,7 +366,7 @@ export function SimulationDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {[...data].reverse().map((row) => (
+                            {data.map((row) => (
                                 <TableRow key={row.date}>
                                     <TableCell className="font-medium text-muted-foreground whitespace-nowrap">{row.monthLabel}</TableCell>
                                     {simSettings.accounts.map((acc, idx) => (

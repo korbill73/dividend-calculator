@@ -167,19 +167,17 @@ export function SimSettings() {
                 </div>
 
                 {/* Monthly Contribution - Korean only, one row */}
-                <div className="space-y-2">
-                    <Label className="text-sm font-medium">월 추가 불입금</Label>
-                    <div className="flex items-center gap-2">
-                        <Input
-                            type="number"
-                            value={simSettings.monthlyContribution / 10000}
-                            onChange={(e) => updateSimSettings({ monthlyContribution: Number(e.target.value) * 10000 })}
-                            className="text-right h-8 text-sm"
-                            placeholder="만원 단위"
-                            disabled={isReadOnly}
-                        />
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Label className="text-sm font-medium whitespace-nowrap">월 추가 불입금</Label>
+                    <Input
+                        type="number"
+                        value={simSettings.monthlyContribution / 10000}
+                        onChange={(e) => updateSimSettings({ monthlyContribution: Number(e.target.value) * 10000 })}
+                        className="text-right h-8 text-sm w-24"
+                        placeholder="100"
+                        disabled={isReadOnly}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
                 </div>
 
                 {/* Accounts Initial Balances (in 만원) */}
