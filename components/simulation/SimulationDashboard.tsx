@@ -28,6 +28,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimSettings } from "./SimSettings";
 import { Save, Loader2, Check } from "lucide-react";
 
+interface GuestSettings {
+    startYear: number;
+    endYear: number;
+    initialAmount: number;
+    monthlyContribution: number;
+    scenarios: {
+        conservative: number;
+        moderate: number;
+        aggressive: number;
+    };
+}
+
+interface SimulationDashboardProps {
+    guestSettings?: GuestSettings;
+    onGuestSettingsChange?: (settings: GuestSettings) => void;
+}
+
 const AccountCell = ({
     date,
     accountName,
@@ -77,29 +94,52 @@ const AccountCell = ({
     )
 }
 
-export function SimulationDashboard() {
+export function SimulationDashboard({ guestSettings, onGuestSettingsChange }: SimulationDashboardProps) {
     const { simSettings, history, updateAccountHistoryPoint, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    const startBalance = simSettings.accounts.reduce((acc, a) => acc + a.balance, 0);
-    const isReadOnly = !user;
+    const isGuest = !user;
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const currentDateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
+    // No-op handler for guests to prevent store mutations
+    const handleAccountHistoryUpdate = isGuest 
+        ? () => {} 
+        : updateAccountHistoryPoint;
+
+    // Use guest settings for non-logged-in users, store settings for logged-in users
+    const effectiveSettings = isGuest && guestSettings ? {
+        startBalance: guestSettings.initialAmount,
+        monthlyContribution: guestSettings.monthlyContribution,
+        scenarios: guestSettings.scenarios,
+        startYear: guestSettings.startYear,
+        endYear: guestSettings.endYear,
+        startMonth: 1,
+        accounts: [{ name: "시뮬레이션", balance: guestSettings.initialAmount }],
+    } : {
+        startBalance: simSettings.accounts.reduce((acc, a) => acc + a.balance, 0),
+        monthlyContribution: simSettings.monthlyContribution,
+        scenarios: simSettings.scenarios,
+        startYear: simSettings.startYear ?? 2025,
+        endYear: simSettings.endYear ?? 2050,
+        startMonth: simSettings.startMonth ?? 1,
+        accounts: simSettings.accounts,
+    };
+
     const data = useMemo(() => {
         return generateSimulationData(
-            startBalance,
-            simSettings.monthlyContribution,
-            simSettings.scenarios,
-            history,
-            simSettings.startYear ?? 2025,
-            simSettings.endYear ?? 2050,
-            simSettings.startMonth ?? 1
+            effectiveSettings.startBalance,
+            effectiveSettings.monthlyContribution,
+            effectiveSettings.scenarios,
+            isGuest ? [] : history,
+            effectiveSettings.startYear,
+            effectiveSettings.endYear,
+            effectiveSettings.startMonth
         );
-    }, [startBalance, simSettings.monthlyContribution, simSettings.scenarios, history, simSettings.startYear, simSettings.endYear, simSettings.startMonth]);
+    }, [effectiveSettings.startBalance, effectiveSettings.monthlyContribution, effectiveSettings.scenarios, isGuest, history, effectiveSettings.startYear, effectiveSettings.endYear, effectiveSettings.startMonth]);
 
     const formatMan = (val: number) => {
         const man = Math.round(val / 10000);
@@ -236,11 +276,14 @@ export function SimulationDashboard() {
             {/* Settings & Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
                 <div className="lg:col-span-3">
-                    <SimSettings />
+                    <SimSettings 
+                        guestSettings={guestSettings}
+                        onGuestSettingsChange={onGuestSettingsChange}
+                    />
                 </div>
                 <Card className="lg:col-span-9 flex flex-col">
                     <CardHeader className="p-3 md:p-6">
-                        <CardTitle className="text-sm md:text-base">자산 성장 예측 ({simSettings.startYear}-{simSettings.endYear})</CardTitle>
+                        <CardTitle className="text-sm md:text-base">자산 성장 예측 ({effectiveSettings.startYear}-{effectiveSettings.endYear})</CardTitle>
                     </CardHeader>
                     <CardContent className="flex-1 min-h-[250px] md:min-h-[400px] p-2 md:p-6 pt-0">
                         <ResponsiveContainer width="100%" height="100%">
@@ -251,7 +294,7 @@ export function SimulationDashboard() {
                                     stroke="#888"
                                     minTickGap={50}
                                     tickFormatter={(value) => {
-                                        if (!simSettings.birthYear) return value;
+                                        if (isGuest || !simSettings.birthYear) return value;
                                         const year = parseInt(value.split('.')[0]);
                                         const age = year - simSettings.birthYear;
                                         return `${value} (${age}세)`;
@@ -301,7 +344,7 @@ export function SimulationDashboard() {
                             상세 예측 데이터
                             <span className="text-[10px] md:text-xs font-normal text-muted-foreground">(단위: 만원)</span>
                         </CardTitle>
-                        {!isReadOnly && (
+                        {!isGuest && (
                             <Button
                                 onClick={handleSave}
                                 size="sm"
@@ -329,15 +372,15 @@ export function SimulationDashboard() {
                                 <span className="font-bold text-orange-400 whitespace-nowrap text-sm">
                                     📌 {currentRow.monthLabel} 입력
                                 </span>
-                                {simSettings.accounts.map((acc, idx) => (
+                                {effectiveSettings.accounts.map((acc, idx) => (
                                     <div key={idx} className="flex items-center gap-1">
                                         <span className="text-yellow-500 text-xs font-medium">{acc.name}:</span>
                                         <AccountCell
                                             date={currentRow.date}
                                             accountName={acc.name}
                                             accountValue={currentRow.accountValues?.[acc.name]}
-                                            onUpdate={updateAccountHistoryPoint}
-                                            disabled={isReadOnly}
+                                            onUpdate={handleAccountHistoryUpdate}
+                                            disabled={isGuest}
                                         />
                                     </div>
                                 ))}
@@ -353,7 +396,7 @@ export function SimulationDashboard() {
                         <TableHeader className="sticky top-0 bg-card z-10">
                             <TableRow>
                                 <TableHead className="whitespace-nowrap">날짜</TableHead>
-                                {simSettings.accounts.map((acc, idx) => (
+                                {effectiveSettings.accounts.map((acc, idx) => (
                                     <TableHead key={idx} className="text-right whitespace-nowrap bg-yellow-500/10 border-x border-yellow-500/30 min-w-[100px]">
                                         <span className="text-yellow-500 font-bold text-xs">{acc.name}</span>
                                     </TableHead>
@@ -369,14 +412,14 @@ export function SimulationDashboard() {
                             {data.map((row) => (
                                 <TableRow key={row.date}>
                                     <TableCell className="font-medium text-muted-foreground whitespace-nowrap">{row.monthLabel}</TableCell>
-                                    {simSettings.accounts.map((acc, idx) => (
+                                    {effectiveSettings.accounts.map((acc, idx) => (
                                         <TableCell key={idx} className="text-right p-1 bg-yellow-500/5 border-x border-yellow-500/20">
                                             <AccountCell
                                                 date={row.date}
                                                 accountName={acc.name}
                                                 accountValue={row.accountValues?.[acc.name]}
-                                                onUpdate={updateAccountHistoryPoint}
-                                                disabled={isReadOnly}
+                                                onUpdate={handleAccountHistoryUpdate}
+                                                disabled={isGuest}
                                             />
                                         </TableCell>
                                     ))}

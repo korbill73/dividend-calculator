@@ -9,19 +9,40 @@ import { Button } from "@/components/ui/button";
 import { Save, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export function SimSettings() {
+interface GuestSettings {
+    startYear: number;
+    endYear: number;
+    initialAmount: number;
+    monthlyContribution: number;
+    scenarios: {
+        conservative: number;
+        moderate: number;
+        aggressive: number;
+    };
+}
+
+interface SimSettingsProps {
+    guestSettings?: GuestSettings;
+    onGuestSettingsChange?: (settings: GuestSettings) => void;
+}
+
+export function SimSettings({ guestSettings, onGuestSettingsChange }: SimSettingsProps) {
     const { simSettings, updateSimSettings, updateAccountBalance, updateAccountName, addAccount, removeAccount, saveToSupabase } = useFinanceStore();
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     
-    const [localStartYear, setLocalStartYear] = useState(String(simSettings.startYear ?? 2025));
+    const isGuest = !user;
+    
+    const [localStartYear, setLocalStartYear] = useState(String(isGuest ? guestSettings?.startYear : simSettings.startYear ?? 2025));
     const [localStartMonth, setLocalStartMonth] = useState(String(simSettings.startMonth ?? 1));
     
     useEffect(() => {
-        setLocalStartYear(String(simSettings.startYear ?? 2025));
-        setLocalStartMonth(String(simSettings.startMonth ?? 1));
-    }, [simSettings.startYear, simSettings.startMonth]);
+        if (!isGuest) {
+            setLocalStartYear(String(simSettings.startYear ?? 2025));
+            setLocalStartMonth(String(simSettings.startMonth ?? 1));
+        }
+    }, [simSettings.startYear, simSettings.startMonth, isGuest]);
 
     const handleSave = async () => {
         if (!user) return;
@@ -35,21 +56,152 @@ export function SimSettings() {
         }
     };
 
-    // 총 계좌 잔액 계산
-    const totalBalance = simSettings.accounts.reduce((sum, acc) => sum + acc.balance, 0);
+    // Guest mode - use local settings
+    if (isGuest && guestSettings && onGuestSettingsChange) {
+        const totalBalance = guestSettings.initialAmount;
+        
+        return (
+            <Card className="h-full">
+                <CardHeader className="p-3 md:p-6">
+                    <CardTitle className="text-sm md:text-base">시뮬레이션 체험</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
+                        자유롭게 설정을 변경해 보세요 (저장되지 않음)
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 md:space-y-6 p-3 pt-0 md:p-6 md:pt-0">
 
-    // 로그인 여부
-    const isReadOnly = !user;
+                    {/* Period Settings - Guest simplified */}
+                    <div className="space-y-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                        <h3 className="text-sm font-medium">시뮬레이션 기간</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">시작년도</Label>
+                                <Input
+                                    type="number"
+                                    value={guestSettings.startYear}
+                                    onChange={(e) => onGuestSettingsChange({ ...guestSettings, startYear: Number(e.target.value) })}
+                                    className="text-right h-8 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">종료년도</Label>
+                                <Input
+                                    type="number"
+                                    value={guestSettings.endYear}
+                                    onChange={(e) => onGuestSettingsChange({ ...guestSettings, endYear: Number(e.target.value) })}
+                                    className="text-right h-8 text-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scenarios - Guest */}
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-medium">목표 수익률 (%)</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">보수적</Label>
+                                <Input
+                                    type="number"
+                                    value={guestSettings.scenarios.conservative}
+                                    onChange={(e) => onGuestSettingsChange({ 
+                                        ...guestSettings, 
+                                        scenarios: { ...guestSettings.scenarios, conservative: Number(e.target.value) } 
+                                    })}
+                                    className="text-right h-8 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">중립적</Label>
+                                <Input
+                                    type="number"
+                                    value={guestSettings.scenarios.moderate}
+                                    onChange={(e) => onGuestSettingsChange({ 
+                                        ...guestSettings, 
+                                        scenarios: { ...guestSettings.scenarios, moderate: Number(e.target.value) } 
+                                    })}
+                                    className="text-right h-8 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">공격적</Label>
+                                <Input
+                                    type="number"
+                                    value={guestSettings.scenarios.aggressive}
+                                    onChange={(e) => onGuestSettingsChange({ 
+                                        ...guestSettings, 
+                                        scenarios: { ...guestSettings.scenarios, aggressive: Number(e.target.value) } 
+                                    })}
+                                    className="text-right h-8 text-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Monthly Contribution - Guest */}
+                    <div className="flex items-center gap-2">
+                        <Label className="text-sm font-medium whitespace-nowrap">월 추가 불입금</Label>
+                        <Input
+                            type="number"
+                            value={guestSettings.monthlyContribution / 10000}
+                            onChange={(e) => onGuestSettingsChange({ 
+                                ...guestSettings, 
+                                monthlyContribution: Number(e.target.value) * 10000 
+                            })}
+                            className="text-right h-8 text-sm w-24"
+                            placeholder="0"
+                        />
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
+                    </div>
+
+                    {/* Initial Amount - Guest (single input) */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium leading-none">초기 금액 (시작 잔액)</h3>
+                        <p className="text-xs text-muted-foreground">※ 금액은 만원 단위로 입력</p>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="number"
+                                className="text-right h-8 text-sm flex-1"
+                                value={guestSettings.initialAmount / 10000}
+                                onChange={(e) => onGuestSettingsChange({ 
+                                    ...guestSettings, 
+                                    initialAmount: Number(e.target.value) * 10000 
+                                })}
+                                placeholder="초기 금액"
+                            />
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-700">
+                            <div className="flex justify-between items-center text-sm font-medium">
+                                <span>총합</span>
+                                <span className="text-blue-400">
+                                    {new Intl.NumberFormat('ko-KR').format(totalBalance)}원
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Login prompt for guests */}
+                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-center">
+                        <p className="text-xs text-blue-300">
+                            로그인하면 설정을 저장하고<br />실적 기록을 관리할 수 있습니다
+                        </p>
+                    </div>
+
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Logged-in user mode - original behavior
+    const totalBalance = simSettings.accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
     return (
         <Card className="h-full">
             <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-sm md:text-base">시뮬레이션 설정</CardTitle>
                 <CardDescription className="text-xs md:text-sm">
-                    {isReadOnly
-                        ? "샘플 데이터 확인 중 (수정은 로그인 필요)"
-                        : "설정값을 수정하세요"
-                    }
+                    설정값을 수정하세요
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 md:space-y-6 p-3 pt-0 md:p-6 md:pt-0">
@@ -66,7 +218,6 @@ export function SimSettings() {
                                 onChange={(e) => updateSimSettings({ birthYear: e.target.value ? Number(e.target.value) : undefined })}
                                 className="text-right h-8 text-sm"
                                 placeholder="1985"
-                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
@@ -88,7 +239,6 @@ export function SimSettings() {
                                     }
                                 }}
                                 className="text-right h-8 text-sm"
-                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
@@ -113,7 +263,6 @@ export function SimSettings() {
                                 }}
                                 className="text-right h-8 text-sm"
                                 placeholder="1-12"
-                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
@@ -123,7 +272,6 @@ export function SimSettings() {
                                 value={simSettings.endYear ?? 2050}
                                 onChange={(e) => updateSimSettings({ endYear: Number(e.target.value) })}
                                 className="text-right h-8 text-sm"
-                                disabled={isReadOnly}
                             />
                         </div>
                     </div>
@@ -140,7 +288,6 @@ export function SimSettings() {
                                 value={simSettings.scenarios.conservative}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, conservative: Number(e.target.value) } })}
                                 className="text-right h-8 text-sm"
-                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
@@ -150,7 +297,6 @@ export function SimSettings() {
                                 value={simSettings.scenarios.moderate}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, moderate: Number(e.target.value) } })}
                                 className="text-right h-8 text-sm"
-                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
@@ -160,7 +306,6 @@ export function SimSettings() {
                                 value={simSettings.scenarios.aggressive}
                                 onChange={(e) => updateSimSettings({ scenarios: { ...simSettings.scenarios, aggressive: Number(e.target.value) } })}
                                 className="text-right h-8 text-sm"
-                                disabled={isReadOnly}
                             />
                         </div>
                     </div>
@@ -175,7 +320,6 @@ export function SimSettings() {
                         onChange={(e) => updateSimSettings({ monthlyContribution: Number(e.target.value) * 10000 })}
                         className="text-right h-8 text-sm w-24"
                         placeholder="100"
-                        disabled={isReadOnly}
                     />
                     <span className="text-sm text-muted-foreground whitespace-nowrap">만원</span>
                 </div>
@@ -184,17 +328,15 @@ export function SimSettings() {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <h3 className="text-sm font-medium leading-none">초기 금액 (시작 잔액)</h3>
-                        {!isReadOnly && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addAccount()}
-                                className="h-7 text-xs"
-                            >
-                                <Plus className="h-3 w-3 mr-1" />
-                                계좌 추가
-                            </Button>
-                        )}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addAccount()}
+                            className="h-7 text-xs"
+                        >
+                            <Plus className="h-3 w-3 mr-1" />
+                            계좌 추가
+                        </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">※ 금액은 만원 단위로 입력</p>
                     <div className="space-y-2">
@@ -207,7 +349,6 @@ export function SimSettings() {
                                     value={acc.name}
                                     onChange={(e) => updateAccountName(idx, e.target.value)}
                                     placeholder="계좌명"
-                                    disabled={isReadOnly}
                                 />
                                 {/* 잔액 입력 */}
                                 <div className="flex items-center gap-1 flex-1">
@@ -217,12 +358,11 @@ export function SimSettings() {
                                         value={acc.balance / 10000}
                                         onChange={(e) => updateAccountBalance(idx, Number(e.target.value) * 10000)}
                                         placeholder="만원"
-                                        disabled={isReadOnly}
                                     />
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">만원</span>
                                 </div>
                                 {/* 삭제 버튼 */}
-                                {!isReadOnly && simSettings.accounts.length > 1 && (
+                                {simSettings.accounts.length > 1 && (
                                     <Button
                                         variant="ghost"
                                         size="sm"

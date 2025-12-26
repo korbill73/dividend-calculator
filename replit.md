@@ -39,6 +39,15 @@ Preferred communication style: Simple, everyday language.
 - **Data Access Pattern**: 
   - Authenticated users: Data synced to Supabase
   - Guest users: Read-only sample data, local storage only
+  - Guest simulation mode: Preview-only mode with local React state (not persisted)
+
+### Guest Mode (Simulation Page)
+- Non-logged-in users can preview simulation with editable settings
+- Settings managed at page level via React state (not Zustand store)
+- Data resets on page reload (intentional - no DB storage for guests)
+- Simplified UI: single initial amount input instead of multiple accounts
+- No-op handlers prevent accidental store mutations
+- Login prompt displayed to encourage account creation
 
 ### Routing Structure
 - `/` - Dashboard with portfolio summary
